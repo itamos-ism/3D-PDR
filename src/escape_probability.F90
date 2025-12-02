@@ -70,13 +70,11 @@ cooling_rate = 0.0D0
     allocate(tau_ij(0:nrays-1))
     allocate(field(1:nlev,1:nlev))
     field=0.0D0
-    !frac2=1.0D0/sqrt(8.0*KB*Tguess/PI/MP/molmass + v_turb**2)
     frac2=1.0D0/sqrt(2.0*KB*Tguess/MP/molmass + v_turb**2)
-    !frac2=1.0D0/sqrt(KB*Tguess/PI/MP+v_turb**2/2.)/sqrt(2.*PI)
-    !frac2=1.0D0/sqrt(KB*Tguess/MP/molmass+v_turb**2)/sqrt(2.*PI)
     do ilevel=1,nlev
        do jlevel=1,nlev !i>j
          if (jlevel.ge.ilevel) exit
+         if (A_COEFFS(ilevel,jlevel).eq.0.0D0) cycle !if Aij=0 cycle
          tau_ij=0.0D0; beta_ij=0.0D0; beta_ij_ray=0.0D0; beta_ij_sum=0.0D0
          frac1=(A_COEFFS(ilevel,jlevel)*(C**3))/(8.0*pi*(frequencies(ilevel,jlevel)**3))
          TMP2=2.0D0*HP*(FREQUENCIES(ilevel,jlevel)**3)/(C**2)
