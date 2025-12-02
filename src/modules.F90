@@ -139,7 +139,7 @@ MODULE maincode_module
   real(kind=dp) :: temp_Tgas
 #endif
   character(len=50)::paramFile
-  character(len=50)::coolfile(1:10)
+  character(len=50)::coolfile(1:30)
   integer::coo,cur_nlev,cur_ntemp
   real(kind=dp),allocatable::temp_pop(:)
   type coolant_node
