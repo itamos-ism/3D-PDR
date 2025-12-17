@@ -117,7 +117,7 @@
 !  384)
 !  Setting this factor to 1.0 gives the standard Bakes & Tielens
 !  expression
-   PHI_PAH=1.0D0!0.4D0
+   PHI_PAH=0.4D0!1.0D0
 
    ALPHA=0.944D0
    BETA=0.735D0/GAS_TEMPERATURE**0.068
