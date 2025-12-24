@@ -39,9 +39,9 @@ Gext=0
 read(12,*) Gext(1)
 #ifdef CRATTENUATION
 #if CRATTENUATION == 1
-read(12,*) crfieldchoice !L or H
+read(12,*) crfieldchoice !L, H, or U
 select case (crfieldchoice)
-  case ('L', 'l', 'H', 'h')
+  case ('L', 'l', 'H', 'h', 'U', 'u')
       continue
   case default
       STOP 'Invalid crfieldchoice'
