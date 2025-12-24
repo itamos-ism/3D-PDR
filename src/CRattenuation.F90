@@ -66,6 +66,9 @@ subroutine zetafuncPad(ncol, zetalocal)
   & 6.015889127529d3, -2.789238383353d2, 8.595814402406d0, &
   & -1.698029737474d-1, 1.951179287567d-3, -9.937499546711d-6 /)
 
+  real(kind=DDP), dimension(0:4) :: fu = (/-2.25202661d2, &
+    & 4.22778765d1, -3.09907676d0, 9.97659175d-2, -1.20564293d-3/)
+
   real(kind=DDP) :: craux
 
   real(kind=DDP) :: lcol
@@ -81,7 +84,13 @@ subroutine zetafuncPad(ncol, zetalocal)
       craux = craux + fh(ii)*lcol**ii
     endif
   end do
-
+  
+  do ii=0,4
+    if ((crfieldchoice .eq. "U") .or. (crfieldchoice .eq. "u")) then
+      write(6,*) ncol,craux, fu(ii),lcol,ii
+      craux = craux + fu(ii)*lcol**ii
+    endif
+  enddo
   zetalocal = 10**craux
 
 return 
