@@ -30,7 +30,7 @@ contains
 
     ! grid
     write(nUnitFile,'(A)')'    <Grid name="Mesh" GridType="Uniform">'
-    write(nUnitFile,'(A,3I7,A)')'      <Topology TopologyType="3DCoRectMesh" Dimensions="',nxc,nyc,nzc,'"/>'
+    write(nUnitFile,'(A,3I7,A)')'      <Topology TopologyType="3DCoRectMesh" Dimensions="',nzc,nyc,nxc,'"/>'
     write(nUnitFile,'(A)')'      <Geometry Type="ORIGIN_DXDYDZ">'
     write(nUnitFile,'(A,3I2,A)') '        <DataItem Format="XML" Dimensions="3">',0,0,0,'</DataItem>'
     write(nUnitFile,'(A,3ES15.7,A)') '        <DataItem Format="XML" Dimensions="3">',dx,dy,dz,'</DataItem>'

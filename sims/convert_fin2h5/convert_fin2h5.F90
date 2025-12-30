@@ -66,7 +66,7 @@ if (file_exists) then
   do i=1,nxc
   do j=1,nyc
   do k=1,nzc
-      read(unit,'(A7,200ES15.7)') first_col, pdr(i,j,k)%x, pdr(i,j,k)%y, pdr(i,j,k)%z, pdr(i,j,k)%cooling(:),pdr(i,j,k)%totalcooling, pdr(i,j,k)%AV(:)
+      read(unit,'(A7,200ES15.7)') first_col, pdr(i,j,k)%x, pdr(i,j,k)%y, pdr(i,j,k)%z, pdr(i,j,k)%cooling(:),pdr(i,j,k)%totalcooling!, pdr(i,j,k)%AV(:)
   enddo
   enddo
   enddo
@@ -80,7 +80,7 @@ inquire(file=trim(fin_file), exist=file_exists)
   do i=1,nxc
   do j=1,nyc
   do k=1,nzc
-      read(unit,'(A7,200ES15.7)') first_col, pdr(i,j,k)%x, pdr(i,j,k)%y, pdr(i,j,k)%z, pdr(i,j,k)%heating, pdr(i,j,k)%AV
+      read(unit,'(A7,200ES15.7)') first_col, pdr(i,j,k)%x, pdr(i,j,k)%y, pdr(i,j,k)%z, pdr(i,j,k)%heating!, pdr(i,j,k)%AV
   enddo
   enddo
   enddo
