@@ -208,6 +208,10 @@ DO ITERATION=1,ITERTOT
         ENDIF 
    
         call changetemperature
+        
+        IF (iteration.gt.1.and.levpop_iteration.eq.1) THEN
+               call updatelte
+        ENDIF
 
 #ifdef THERMALBALANCE
         if (level_conv.and.first_time) first_time=.false.
