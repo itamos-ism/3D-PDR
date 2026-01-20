@@ -34,16 +34,14 @@ DO II=1,ichem
 ENDDO 
 
 #ifdef OPENMP
-!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(p,i,temp_Z_function) 
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(p,temp_Z_function) 
 #endif
 do p=1,pdr_ptot
-  do i=1,coo
-    call  calculate_partition_function(temp_Z_function,coolant(i)%cnlev,&
-            coolant(i)%energies,coolant(i)%weights,pdr(p)%nTgas)
-    call calculate_lte_populations(coolant(i)%cnlev,pdr(p)%coolant(i)%pop,coolant(i)%energies,&
-            coolant(i)%weights,temp_Z_function,pdr(p)%abundance(coolant(i)%cspec)*pdr(p)%rho,&
-            pdr(p)%nTgas)
-  enddo
+   call calculate_partition_function(temp_Z_function,coolant(1)%cnlev,&
+         coolant(1)%energies,coolant(1)%weights,pdr(p)%nTgas)
+   call calculate_lte_populations(coolant(1)%cnlev,pdr(p)%coolant(1)%pop,coolant(1)%energies,&
+         coolant(1)%weights,temp_Z_function,pdr(p)%abundance(coolant(1)%cspec)*pdr(p)%rho,&
+         pdr(p)%nTgas)
 enddo
 #ifdef OPENMP
 !$OMP END PARALLEL DO
