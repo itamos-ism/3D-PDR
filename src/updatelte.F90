@@ -12,7 +12,7 @@ do p=1,pdr_ptot
 #ifdef THERMALBALANCE
   if (pdr(p)%fullyconverged) cycle
 #endif
-  do i=2,coo
+  do i=1,coo
     call  calculate_partition_function(temp_Z_function,coolant(i)%cnlev,&
             coolant(i)%energies,coolant(i)%weights,pdr(p)%nTgas)
     call calculate_lte_populations(coolant(i)%cnlev,pdr(p)%coolant(i)%pop,coolant(i)%energies,&
