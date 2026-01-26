@@ -87,7 +87,6 @@ subroutine zetafuncPad(ncol, zetalocal)
   
   do ii=0,4
     if ((crfieldchoice .eq. "U") .or. (crfieldchoice .eq. "u")) then
-      write(6,*) ncol,craux, fu(ii),lcol,ii
       craux = craux + fu(ii)*lcol**ii
     endif
   enddo
