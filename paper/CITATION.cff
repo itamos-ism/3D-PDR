@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+title: "3D-PDR: Modelling photodissociation regions with the 3D-PDR code"
+authors:
+  - family-names: "Bisbas"
+    given-names: "Thomas G."
+    orcid: "https://orcid.org/0000-0003-2733-4580"
+    affiliation: "Research Center for Computational Earth and Space Science, Zhejiang Lab, Hangzhou, China"
+  - family-names: "Zhu"
+    given-names: "Zhengping"
+    affiliation: "Research Center for Computational Earth and Space Science, Zhejiang Lab, Hangzhou, China"
+  - family-names: "Gaches"
+    given-names: "Brandt A. L."
+    orcid: "https://orcid.org/0000-0003-4224-6829"
+    affiliation: "Faculty of Physics, University of Duisburg-Essen, Duisburg, Germany"
+  - family-names: "Tang"
+    given-names: "Xuefei"
+    affiliation: "Research Center for Computational Earth and Space Science, Zhejiang Lab, Hangzhou, China"
+  - family-names: "Jiang"
+    given-names: "Xue-Jian"
+    orcid: "https://orcid.org/0000-0002-8899-4673"
+    affiliation: "Research Center for Computational Earth and Space Science, Zhejiang Lab, Hangzhou, China"
+  - family-names: "Zhang"
+    given-names: "Gaoyuan"
+    affiliation: "Research Center for Computational Earth and Space Science, Zhejiang Lab, Hangzhou, China"
+message: "If you use 3D-PDR in your research, please cite it using these metadata and the JOSS paper."
+type: software
+repository-code: "https://github.com/itamos-ism/3D-PDR/"
+documentation: "https://itamos.readthedocs.io/"
+abstract: "3D-PDR is an open-source astrochemical code designed to model the chemistry, thermal balance, and line emission of photodissociation regions (PDRs) in one- and three-dimensional environments. The code solves the coupled interaction between far-ultraviolet radiation, gas-phase chemistry, dust processes, thermal physics, and level populations. The upgraded version includes the high-performance ray-tracing algorithm RAYTHEIA, new physical modules, and modular software architecture that significantly improve computational efficiency, scalability, and scientific capabilities."
+keywords:
+  - astrophysics
+  - photodissociation regions
+  - astrochemistry
+  - radiative transfer
+  - star formation
+  - interstellar medium
+  - chemical networks
+  - molecular clouds
+  - JWST
+  - ALMA
+license: "GPL-3.0-or-later"
+version: "3.0.0"
+date-released: "2026-06-10"
