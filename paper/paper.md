@@ -77,16 +77,10 @@ The code includes several new physical modules from those initially presented in
 
 As an example, we post-process a sub-region from the SILCC-Zoom hydrodynamical simulation of @Seifried2017 modelling a star-forming molecular cloud. The selected region has a mass of $M_{\rm tot}=7.3\times10^4\,{\rm M}_{\odot}$ and an extent of 62.5 pc resolved with $256^3$ uniform cells achieving a spatial resolution of 0.24 pc. It contains a filamentary structure with significant substructure, including dense clumps and extended low-density regions. We consider an FUV strength of $\chi/\chi_0=10$ [@Draine1978] and the $\cal L$-function of @Padovani2018 describing the cosmic-ray ionization rate and its attenuation along depth. We assume solar metallicity, dust-to-gas ratio of $10^{-2}$ and a sub-set of the UMIST2012 chemical network [@McElroy2013] consisting of 79 species and 1169 reactions. The initial elemental abundances were set as follows: $\mathrm{C}^+=10^{-4}$, $\mathrm{O}=3\times10^{-4}$, $\mathrm{N}=3.3\times10^{-5}$, $\mathrm{Mg}^+=2.7\times10^{-7}$, and $\mathrm{He}=8.5\times10^{-2}$. 
 
-![Top half: column densities of $\mathrm{C}^+$, C and CO (upper row) and O, $\mathrm{HCO}^+$ and HCN (lower row). Bottom half: the corresponding velocity-integrated emission maps, [CII] 158 μm, [CI] (1-0) and CO (1-0) (upper row), and [OI] 63 μm, $\mathrm{HCO}^+$ (1-0) and HCN (1-0) (lower row). Note that the latter two lines are in log-scale. \label{fig:example}](six_emission_and_cds.png){ width=95% }
+![Top half: column densities of $\mathrm{C}^+$, C and CO (upper row) and O, $\mathrm{HCO}^+$ and HCN (lower row). Bottom half: the corresponding velocity-integrated emission maps, [CII] 158 μm, [CI] (1-0) and CO (1-0) (upper row), and [OI] 63 μm, $\mathrm{HCO}^+$ (1-0) and HCN (1-0) (lower row). Note that the latter two lines are in log-scale. \label{fig:example}](emission_and_cds.png){ width=95% }
 
 \autoref{fig:example} shows example outputs of the column densities and velocity integrated emission maps. The top half shows column densities of $\mathrm{C}^+$, C and CO (upper row) and O, $\mathrm{HCO}^+$ and HCN (lower row). The bottom half shows the corresponding velocity-integrated emission maps, [CII] 158 μm, [CI] (1-0) and CO (1-0) (upper row), and [OI] 63 μm, $\mathrm{HCO}^+$ (1-0) and HCN (1-0) (lower row). Note that the colour bars of the latter two velocity integrated emission maps are in log-scale. 
 
-
-
-<!-- 
-Figure \@ref(fig:example) shows example outputs including the column densities of ${\rm H}_2$, $\rm C^+$, C, and CO, as well as the velocity integrated emission maps of \[CII\] 158 μm, \[CI\] (1-0) and CO $J=1-0$. 
-![The left panel shows the H$_2$ column density. Top row shows the velocity integrated maps of \[CII\] 158$\mu$m, \[CI\](1-0) and CO(1-0). Bottom row shows the corresponding column densities.](figure_joss.png){#fig:example width=100%}.
--->
 
 # AI usage disclosure
 
