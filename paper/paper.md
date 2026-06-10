@@ -31,7 +31,7 @@ affiliations:
  - name: Faculty of Physics, University of Duisburg-Essen, Lotharstraß 1, 47057, Duisburg, Germany
    index: 2
 date: June 2026
-bibliography: 3DPDR_joss.bib
+bibliography: paper.bib
 ---
 
 # Summary
