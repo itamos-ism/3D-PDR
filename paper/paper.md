@@ -13,12 +13,12 @@ authors:
     orcid: 0000-0003-4224-6829
     equal-contrib: true
     affiliation: 2
-  - name: Xuefei Tang
-    orcid:
-    equal-contrib: true
-    affiliation: 1
   - name: Xue-Jian Jiang
     orcid: 0000-0002-8899-4673
+    equal-contrib: true
+    affiliation: 1
+  - name: Xuefei Tang
+    orcid:
     equal-contrib: true
     affiliation: 1
   - name: Gaoyuan Zhang
