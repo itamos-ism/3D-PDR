@@ -57,6 +57,26 @@
 #                       the first attempt is unchanged so normal cells are
 #                       unaffected (recommended)
 #                   0 - Switch off (failed cells abandoned at best effort)
+#NGACCEL          : 1 - Ng (1974) acceleration of the level population
+#                       iterations (faster convergence, recommended)
+#                   0 - Switch off
+#NGCYCLE          : 1 - Dynamic per-point damping of oscillating (flip-flop)
+#                       level populations: whenever an update reverses the
+#                       previous one, the last two iterates are averaged.
+#                       Acts on each point/coolant individually, every
+#                       iteration, as soon as the oscillation appears,
+#                       instead of stalling until the FORCECONVERGENCE
+#                       averaging at level iteration 75
+#                       (needs NGACCEL=1; recommended)
+#NGRELAX          : 1 - Adaptive per-point under-relaxation of persistently
+#                       oscillating level populations: a per-cell counter
+#                       shrinks the relaxation weight (1/(2+n)) while a cell
+#                       keeps reversing, damping the violent CO(1-0) flip-flop
+#                       near the inversion boundary (excitation temp -> inf)
+#                       that fixed weight-1/2 cannot, in hot CR-heated cells
+#                       at n~n_crit. Needs NGACCEL=1; supersedes the NGCYCLE
+#                       damping when both are on (recommended, esp. for 3D)
+#                   0 - Switch off
 #------------------------------------------------------------------
 F90                  = gfortran
 CC                   = gcc
@@ -76,9 +96,14 @@ GRAINRECOMB          = 0
 SUPRATHERMAL         = 0
 H2FORM               = CT02
 CRATTENUATION        = 0
+
 CHEMSTEADY           = 1
 CHEMRETRY            = 1
-RESTART              = 0
 
+NGACCEL              = 1
+NGCYCLE              = 1
+NGRELAX              = 1
+
+RESTART              = 0
 OUTRAYINFO           = 0
 CHEMANALYSIS         = 0
