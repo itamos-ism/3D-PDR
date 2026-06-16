@@ -244,6 +244,24 @@ int calculate_abundances_(realtype *abundance, realtype *rate, realtype *density
 
     tout = 1.0e-4 * seconds_in_year;
 
+#ifdef CHEMRETRY
+    /* CHEMRETRY: save the initial abundances so a cell whose integration fails
+       - typically "error test failed repeatedly ... |h|=hmin at t=0" for the
+       very stiff chemistry under extreme cosmic-ray / FUV conditions - can be
+       re-integrated from scratch with a forced, progressively smaller initial
+       step. Forcing a small h0 stops CVODE over-reaching into the fast t=0
+       transient (which is what trips the error test); CVODE then ramps the
+       step back up on its own. The first attempt keeps CVODE's automatic h0,
+       so well-behaved cells are unaffected. */
+    {
+    realtype *yinit = (realtype *) malloc(neq * sizeof(realtype));
+    realtype hstart = 1.0e-2;        /* forced initial step (s), x1e-2 each retry */
+    int chem_attempt;
+    for (i = 0; i < neq; i++) yinit[i] = data[i];
+    for (chem_attempt = 0; chem_attempt <= 4; chem_attempt++)
+    {
+#endif
+
     do
     { /* Call CVode, check the return status and loop until the end time is reached */
 
@@ -347,6 +365,76 @@ int calculate_abundances_(realtype *abundance, realtype *rate, realtype *density
         tout = end_time * seconds_in_year;
 
     } while (t < tout && nfails < 5);
+
+#ifdef CHEMRETRY
+      if (nfails < 5) break;          /* integration succeeded (or recovered) */
+      if (chem_attempt == 4) break;   /* keep best effort after the last try */
+      /* Re-initialise from the saved initial state with a forced small h0 */
+      for (i = 0; i < neq; i++) data[i] = yinit[i];
+      flag = CVodeReInit(cvode_mem, t0, y);
+      if (check_flag(&flag, "CVodeReInit", 1)) status = 1;
+      flag = CVodeSetInitStep(cvode_mem, hstart);
+      if (check_flag(&flag, "CVodeSetInitStep", 1)) status = 1;
+      hstart = hstart * 1.0e-2;
+      nfails = 0;
+      tout = 1.0e-4 * seconds_in_year;
+    } /* end CHEMRETRY retry loop */
+    free(yinit);
+    } /* end CHEMRETRY block */
+#endif
+
+#ifdef CHEMSTEADY
+    /* Continue the integration in doubling time blocks until the composition
+       is steady. Without this, the cumulative chemical age of each particle is
+       (number of calls to this routine) x end_time: particles whose thermal
+       balance converges early stop receiving chemistry updates and are frozen
+       mid-evolution, leaving unphysical discontinuities in the abundance
+       profiles between neighbouring particles that converged after different
+       numbers of calls. Up to 7 doublings (128 x end_time); a particle is
+       steady when no species changes by more than 1% over a full doubling. */
+    if (nfails < 5)
+    {
+      int iblock, isteady = 0;
+      realtype yout_old, yout_new, relch;
+      realtype *yold = (realtype *) malloc(neq * sizeof(realtype));
+      data = NV_DATA_S(y);
+      for (iblock = 0; iblock < 7 && !isteady; iblock++)
+      {
+        for (i = 0; i < neq; i++)
+          yold[i] = data[i];
+        tout = 2.0 * tout;
+        do
+        {
+          flag = CVode(cvode_mem, tout, y, &t, CV_NORMAL);
+          if (flag != 0)
+            nfails++;
+        } while (t < tout && nfails < 5);
+        if (nfails >= 5)
+          break;
+        data = NV_DATA_S(y);
+        isteady = 1;
+        for (i = 0; i < neq; i++)
+        {
+#ifdef LOG_ODES
+          yout_old = exp(yold[i]);
+          yout_new = exp(data[i]);
+#else
+          yout_old = yold[i];
+          yout_new = data[i];
+#endif
+          if (yout_new < abstol && yout_old < abstol)
+            continue;
+          relch = fabs(yout_new - yout_old) / (yout_new > abstol ? yout_new : abstol);
+          if (relch > 1.0e-2)
+          {
+            isteady = 0;
+            break;
+          }
+        }
+      }
+      free(yold);
+    }
+#endif
 
     /* Store the output values in the abundance array */
     data = NV_DATA_S(y);
