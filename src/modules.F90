@@ -175,6 +175,12 @@ MODULE maincode_module
      real(kind=dp), pointer :: line(:,:)         !emissivity
      real(kind=dp), pointer :: solution(:)       !ODE solution
      real(kind=dp), pointer :: relativechange(:) !relative change for convergence
+#ifdef NGACCEL
+     real(kind=dp), pointer :: pophist(:,:)
+#endif
+#ifdef NGRELAX
+     integer(kind=i4b) :: noscil
+#endif
      logical :: isconverged
   end type pdr_excit
 
@@ -232,6 +238,10 @@ MODULE maincode_module
   type (pdr_node), allocatable :: pdr(:)      !main 3DPDR array for each grid point p
 
   integer(kind=i4b)::levpop_iteration
+#ifdef NGACCEL
+  integer(kind=i4b)::ng_nhist  !number of stored consecutive plain iterates for Ng acceleration
+  logical::do_ng
+#endif
 #ifdef GUESS_TEMP
 #endif
 
