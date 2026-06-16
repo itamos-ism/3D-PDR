@@ -74,6 +74,14 @@ do p=1,pdr_ptot
              & coolant(k)%PH2_COL,coolant(k)%OH2_COL,temp_C_COEFFS,pdr(p)%abundance(NH)*pdr(p)%rho,&
              & pdr(p)%abundance(NPROTON)*pdr(p)%rho, pdr(p)%abundance(NELECT)*pdr(p)%rho, &
              & pdr(p)%abundance(NHE)*pdr(p)%rho,pdr(p)%abundance(NH2)*pdr(p)%rho)
+          !Rebuilds collisional excitation rates at the local gas temperature (avoids "supercooling" effects)----
+          do i=2,coolant(k)%cnlev      !upper level
+             do j=1,i-1                !lower level
+                temp_C_COEFFS(j,i) = temp_C_COEFFS(i,j)*coolant(k)%weights(i)/coolant(k)%weights(j) &
+                     & *exp(-(coolant(k)%energies(i)-coolant(k)%energies(j))/(KB*pdr(p)%nTgas))
+             enddo
+          enddo
+          !------------------------------------------------------------------------------------------------------
 #ifdef RAYTHEIA_MO
           call escape_probability(temp_transition, pdr(p)%Tdust, nrays, coolant(k)%cnlev, &
                   &coolant(k)%A_COEFFS, coolant(k)%B_COEFFS, temp_C_COEFFS, &
