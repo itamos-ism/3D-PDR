@@ -101,6 +101,12 @@ endif
 ifeq ($(NGRELAX),1)
   CFLAGS += -DNGRELAX
 endif
+ifeq ($(ILLINOIS),1)
+  CFLAGS += -DILLINOIS
+endif
+ifeq ($(REBRACKET),1)
+  CFLAGS += -DREBRACKET
+endif
 
 ifeq ($(DUST),HTT91)
   CFLAGS += -DDUST
