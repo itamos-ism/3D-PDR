@@ -77,6 +77,17 @@
 #                       at n~n_crit. Needs NGACCEL=1; supersedes the NGCYCLE
 #                       damping when both are on (recommended, esp. for 3D)
 #                   0 - Switch off
+#ILLINOIS         : 1 - Illinois-modified regula-falsi (in ln(T)) for the
+#                       thermal-balance temperature refinement, replacing
+#                       plain bisection (faster convergence, recommended)
+#                   0 - Switch off (use plain bisection)
+#REBRACKET        : 1 - When the thermal-balance search stalls with a large
+#                       residual imbalance (bracket confined away from the
+#                       root by early, not-yet-relaxed cooling rates),
+#                       re-open the bracket and resume the search (up to 3
+#                       attempts per point) instead of forcing convergence
+#                       (recommended)
+#                   0 - Switch off (force convergence on stall)
 #------------------------------------------------------------------
 F90                  = gfortran
 CC                   = gcc
@@ -96,14 +107,17 @@ GRAINRECOMB          = 0
 SUPRATHERMAL         = 0
 H2FORM               = CT02
 CRATTENUATION        = 0
-
+#Convergence of ODEs
 CHEMSTEADY           = 1
 CHEMRETRY            = 1
-
+#Ng acceleration
 NGACCEL              = 1
 NGCYCLE              = 1
 NGRELAX              = 1
-
+#Thermal balance
+ILLINOIS             = 1
+REBRACKET            = 1
+###
 RESTART              = 0
 OUTRAYINFO           = 0
 CHEMANALYSIS         = 0
