@@ -39,6 +39,24 @@
 #		  : 0 - switch off (default)
 #CHEMANALYSIS     : 1 - outputs chemical analysis per point (not recommended for 3D models)
 #		  : 0 - switch off (default)
+#CHEMSTEADY       : 1 - Continue each chemical integration in doubling time
+#                       blocks (up to 128x the evolution time) until no
+#                       species changes by >1% over a doubling. Otherwise the
+#                       chemical age of a grid point depends on how many
+#                       chemistry calls it received before its thermal balance
+#                       converged, leaving unphysical abundance jumps between
+#                       neighbouring points (recommended)
+#                   0 - Switch off (each call advances by the evolution
+#                       time only)
+#CHEMRETRY        : 1 - Re-integrate a grid cell whose CVODE chemistry solve
+#                       fails (e.g. "error test failed ... |h|=hmin at t=0"
+#                       for very stiff chemistry under extreme conditions) from
+#                       the saved initial abundances with a forced, shrinking
+#                       initial step (up to 4 retries). Recovers the few stiff
+#                       cells that CVODE's automatic initial step over-reaches;
+#                       the first attempt is unchanged so normal cells are
+#                       unaffected (recommended)
+#                   0 - Switch off (failed cells abandoned at best effort)
 #------------------------------------------------------------------
 F90                  = gfortran
 CC                   = gcc
@@ -56,6 +74,8 @@ THERMALBALANCE       = 1
 FORCECONVERGENCE     = 1
 GRAINRECOMB          = 0
 SUPRATHERMAL         = 0
+CHEMSTEADY           = 1
+CHEMRETRY            = 1
 H2FORM               = CT02
 CRATTENUATION        = 0
 RESTART              = 0
