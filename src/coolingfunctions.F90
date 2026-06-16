@@ -43,6 +43,8 @@ do p=1,pdr_ptot
       ! Specify the evaluation points along each ray from the current pdrpoint
       allocate(cpop(1:coo))
       do k = 1, coo
+          if (pdr(p)%coolant(k)%isconverged) cycle
+          pdr(p)%coolant(k)%coolprev = pdr(p)%cooling(k)
           allocate(cpop(k)%evalpop(0:nrays-1,0:maxpoints,1:coolant(k)%cnlev))
           cpop(k)%evalpop=0.0D0
           do j = 0, nrays - 1
