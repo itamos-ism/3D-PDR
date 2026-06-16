@@ -6,6 +6,14 @@ do p=1,pdr_ptot
   pdr(p)%abundance = init_abundance
 #ifdef THERMALBALANCE
   pdr(p)%dobinarychop = .false.
+#ifdef ILLINOIS
+  pdr(p)%ill_last = "N"
+  pdr(p)%Flow = 0.0D0
+  pdr(p)%Fhigh = 0.0D0
+#endif
+#ifdef REBRACKET
+  pdr(p)%nrebracket = 0
+#endif
 #endif
 #ifdef RESTART
   pdr(p)%restconverged = .false.
