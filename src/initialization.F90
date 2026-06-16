@@ -25,6 +25,13 @@ do p=1,pdr_ptot
     allocate(pdr(p)%coolant(i)%line(coolant(i)%cnlev,coolant(i)%cnlev))
     allocate(pdr(p)%coolant(i)%solution(coolant(i)%cnlev))
     allocate(pdr(p)%coolant(i)%relativechange(coolant(i)%cnlev))
+#ifdef NGACCEL
+    allocate(pdr(p)%coolant(i)%pophist(coolant(i)%cnlev,3))
+    pdr(p)%coolant(i)%pophist = 0.0D0
+#endif
+#ifdef NGRELAX
+    pdr(p)%coolant(i)%noscil = 0
+#endif
   enddo
 #ifndef RAYTHEIA_MO
   allocate(pdr(p)%epray(0:nrays-1))                   
