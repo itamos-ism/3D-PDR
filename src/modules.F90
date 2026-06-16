@@ -236,7 +236,10 @@ MODULE maincode_module
      real(kind=dp) :: Tlow
      real(kind=dp) :: Thigh
      logical       :: doleveltmin
-
+#ifdef ILLINOIS
+     real(kind=8) :: Flow,Fhigh
+     character(len=1) :: ill_last
+#endif
 #ifdef REBRACKET
      integer(kind=i4b) :: nrebracket
 #endif
