@@ -108,10 +108,8 @@ cooling_rate = 0.0D0
         tau_ij(j)=tau_ij(j)+tau_increment !optical depth
     enddo
 
-    if (tau_ij(j).lt.-5.0D0) then
-        beta_ij_ray(j)=(1.0D0-EXP(5.0D0))/(-5.0D0)
-    else if (tau_ij(j).lt.0.0D0) then
-        beta_ij_ray(j)=(1.0D0-EXP(-tau_ij(j)))/tau_ij(j)
+    if (tau_ij(j).lt.0.0D0) then !clips maser cases
+        beta_ij_ray(j)=1.0D0
     else if (abs(tau_ij(j)).lt.1.0D-8) then !was D-6
         beta_ij_ray(j)=1.0D0
     else
@@ -130,10 +128,8 @@ cooling_rate = 0.0D0
         tau_ij(j)=tau_ij(j)+tau_increment !optical depth
     enddo
 
-    if (tau_ij(j).lt.-5.0D0) then
-        beta_ij_ray(j)=(1.0D0-EXP(5.0D0))/(-5.0D0)
-    else if (tau_ij(j).lt.0.0D0) then
-        beta_ij_ray(j)=(1.0D0-EXP(-tau_ij(j)))/tau_ij(j)
+    if (tau_ij(j).lt.0.0D0) then !clips maser cases
+        beta_ij_ray(j)=1.0D0
     else if (abs(tau_ij(j)).lt.1.0D-8) then !was D-6
         beta_ij_ray(j)=1.0D0
     else
@@ -164,32 +160,14 @@ cooling_rate = 0.0D0
          endif
 #endif
 
-!Original version
-           ! Prevent exploding beta values caused by strong masing (tau < -10)
-           ! Assume tau = -10 and calculate the escape probability accordingly
-           if (tau_ij(j).lt.-5.0D0) then
-              beta_ij_ray(j)=(1.0D0-EXP(5.0D0))/(-5.0D0)
-           ! Treat weak masing using the standard escape probability formalism
-           else if (tau_ij(j).lt.0.0D0) then
-              beta_ij_ray(j)=(1.0D0-EXP(-tau_ij(j)))/tau_ij(j)
-           ! Prevent floating point overflow caused by very low opacity (tau < 1e-6)
+           if (tau_ij(j).lt.0.0D0) then !clips maser cases
+              beta_ij_ray(j)=1.0D0
            else if (abs(tau_ij(j)).lt.1.0D-8) then !was D-6
               beta_ij_ray(j)=1.0D0
-           ! For all other cases use the standard escape probability formalism
            else
               beta_ij_ray(j)=(1.0D0-EXP(-tau_ij(j)))/tau_ij(j)
            endif
-!----------------
- 
-!from UCL_PDR
-!           if (tau_ij(j).lt.0) then
-!              beta_ij_ray(j) = 1.0D0
-!           elseif (abs(tau_ij(j)).lt.1.0d-8) then
-!              beta_ij_ray(j) = 1.0D0
-!           else
-!              beta_ij_ray(j) = (1.0D0-dexp(-tau_ij(j)))/tau_ij(j)
-!           endif
-!------------
+
 
          enddo !j=0,nrays-1
 !ENDIF RAYTHEIA
@@ -199,8 +177,7 @@ cooling_rate = 0.0D0
          beta_ij_sum=sum(beta_ij_ray)
          !calculation of average beta_ij in the origin grid point
 #ifdef ONEDIMENSIONAL
-         beta_ij = beta_ij_sum  !<---Original
-!         beta_ij = beta_ij_sum / 2. !<----UCL_PDR
+         beta_ij = beta_ij_sum
 #else
          beta_ij = beta_ij_sum / real(nrays,kind=DP) 
 #endif
