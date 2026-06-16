@@ -38,8 +38,8 @@ Chemistry iterations       |
 Thermal balance values     |
 ===========================|
 40.0			   !Gas temperature for isothermal models
-10.0			   !Floor temperature (if <Tcmb it's set to Tcmb)
-30000.0			   !Maximum allowed gas temperature
+1.0			   !Floor temperature (if <Tcmb it's set to Tcmb)
+20000.0			   !Maximum allowed gas temperature
 20.0			   !Dust temperature for isothermal dust models
 0.005			   !Fcrit (% Accuracy)
 0.01			   !Tdiff (maximum temperature difference)
