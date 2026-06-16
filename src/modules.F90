@@ -184,6 +184,7 @@ MODULE maincode_module
 #ifdef NGRELAX
      integer(kind=i4b) :: noscil
 #endif
+     real(kind=dp) :: coolprev
      logical :: isconverged
   end type pdr_excit
 
