@@ -40,6 +40,7 @@ do p=1,pdr_ptot
 #ifdef NGRELAX
     pdr(p)%coolant(i)%noscil = 0
 #endif
+    pdr(p)%coolant(i)%coolprev = 0.0D0
   enddo
 #ifndef RAYTHEIA_MO
   allocate(pdr(p)%epray(0:nrays-1))                   
