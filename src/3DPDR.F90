@@ -104,9 +104,6 @@ do p=1,pdr_ptot
   write(21, *) pdr(p)%AV
 enddo
 close(21)
-#ifdef UVDEBUG
-stop
-#endif
 
 #ifdef CRATTENUATION
 write(6,*) 'Calculating CRIR attenuation'
