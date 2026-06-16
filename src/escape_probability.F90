@@ -60,6 +60,9 @@ real(kind=dp) :: S_ij, BB_ij
 real(kind=dp) :: tau_increment
 real(kind=dp), allocatable :: tau_ij(:)
 real(kind=dp), allocatable :: field(:,:)
+#ifdef SOBOLEV
+real(kind=dp), allocatable :: beta_save(:,:)
+#endif
 real(kind=dp) :: beta_ij_ray(0:nrays-1)
 real(kind=dp), intent(out) :: line(1:nlev,1:nlev)
 real(kind=dp), intent(out) :: cooling_rate
@@ -70,6 +73,10 @@ cooling_rate = 0.0D0
     allocate(tau_ij(0:nrays-1))
     allocate(field(1:nlev,1:nlev))
     field=0.0D0
+#ifdef SOBOLEV
+    allocate(beta_save(1:nlev,1:nlev))
+    beta_save=1.0D0
+#endif
     frac2=1.0D0/sqrt(2.0*KB*Tguess/MP/molmass + v_turb**2)
     do ilevel=1,nlev
        do jlevel=1,nlev !i>j
@@ -193,9 +200,26 @@ cooling_rate = 0.0D0
          endif
          cooling_rate = cooling_rate + line(ilevel,jlevel)
 2 continue
+#ifdef SOBOLEV 
+         ! Sobolev (ALI-like) net-rate form: because the source function obeys
+         ! (n_l*B_lu - n_u*B_ul)*S = n_u*A exactly, the mean field
+         ! J = (1-beta)*S + beta*BB is equivalent at the fixed point to using
+         ! an effective A*beta together with J = beta*BB. The (1-beta)*S form,
+         ! however, feeds the previous iterate's populations back through S, so
+         ! for optically thick lines (beta -> 0) the iteration contracts only
+         ! by (1-beta) per sweep: populations look converged (<1% change) while
+         ! still far from equilibrium, leaving spurious excitation/cooling at
+         ! low temperatures. The net-rate form has the same solution but no
+         ! lagged self-coupling, so it converges in a few sweeps at any tau.
+         field(ilevel,jlevel) = beta_ij*BB_ij
+         field(jlevel,ilevel) = field(ilevel,jlevel)
+         beta_save(ilevel,jlevel) = beta_ij
+         beta_save(jlevel,ilevel) = beta_ij
+#else
          !<J_ij>
          field(ilevel,jlevel) = (1.0D0-beta_ij)*S_ij + beta_ij*BB_ij
          field(jlevel,ilevel) = field(ilevel,jlevel)
+#endif
        enddo !jlevel=1,nlev
      enddo !ilevel=1,nlev
  
@@ -204,15 +228,24 @@ cooling_rate = 0.0D0
     !Update the transition matrix: Rij = Aij + Bij.<J> + Cij				    	 
     DO ilevel=1,NLEV
       DO jlevel=1,NLEV
+#ifdef SOBOLEV
+        TRANSITION(ilevel,jlevel)=A_COEFFS(ilevel,jlevel)*beta_save(ilevel,jlevel)&
+        & +B_COEFFS(ilevel,jlevel)*FIELD(ilevel,jlevel)&
+        & +C_COEFFS(ilevel,jlevel)
+#else
         TRANSITION(ilevel,jlevel)=A_COEFFS(ilevel,jlevel)&
         & +B_COEFFS(ilevel,jlevel)*FIELD(ilevel,jlevel)&
         & +C_COEFFS(ilevel,jlevel)
+#endif
         IF(ABS(TRANSITION(ilevel,jlevel)).LT.1.0D-50) TRANSITION(ilevel,jlevel)=0.0D0
       ENDDO !jlevel=1,nlev
     ENDDO !ilevel=1,nlev
 
     deallocate(tau_ij)
     deallocate(field)
+#ifdef SOBOLEV
+    deallocate(beta_save)
+#endif
 
   return
 
