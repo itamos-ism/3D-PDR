@@ -102,19 +102,6 @@ if (.not.level_conv) return
                                if (pdr(p)%nTgas.lt.Tmin) then
                                    pdr(p)%nTgas=Tmin
                                    pdr(p)%Tlow=Tmin
-#ifdef TMINRECOVERY
-                                   ! Keep Thigh (the just-evaluated temperature with Fmean<0).
-                                   ! Collapsing the bracket to [Tmin,Tmin] makes every later
-                                   ! proposal Tmin, so the Tdiff stall-check force-converges the
-                                   ! point at Tmin even if, once the level populations catch up,
-                                   ! the gas shows net heating there (unphysical supercooling to
-                                   ! the CMB floor). With Thigh preserved, an Fmean>0 evaluation
-                                   ! at Tmin re-brackets to [Tmin,Thigh] and the search recovers;
-                                   ! a genuine CMB-floor point (Fmean<0 at Tmin) still converges
-                                   ! at Tmin exactly as before.
-#else
-                                   pdr(p)%Thigh=Tmin
-#endif
                                endif
                          endif !(Fmean.lt.0.and.pdr(p)%previouschange.eq."C")
                         !For all other cases do binary chop and flag the process as .true.
