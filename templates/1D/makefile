@@ -107,6 +107,9 @@ endif
 ifeq ($(REBRACKET),1)
   CFLAGS += -DREBRACKET
 endif
+ifeq ($(SOBOLEV),1)
+  CFLAGS += -DSOBOLEV
+endif
 
 ifeq ($(DUST),HTT91)
   CFLAGS += -DDUST
