@@ -117,7 +117,7 @@
 !  384)
 !  Setting this factor to 1.0 gives the standard Bakes & Tielens
 !  expression
-   PHI_PAH=0.4D0!1.0D0
+   PHI_PAH=0.4D0!1.0D0!0.4D0
 
    ALPHA=0.944D0
    BETA=0.735D0/GAS_TEMPERATURE**0.068
@@ -202,7 +202,7 @@
 !               Clavel et al. (1978), Kamp & van Zadelhoff (2001)
 !-----------------------------------------------------------------------
 
-!      COSMICRAY_HEATING=(20.0*EV)*(1.3D-17*ZETALOCAL)*DENSITY*ABUNDANCE(NH2) !20.0 -> 9.4 eV
+!      COSMICRAY_HEATING=(20.0*EV)*(1.3D-17*ZETALOCAL)*DENSITY*ABUNDANCE(NH2) 
       COSMICRAY_HEATING=(9.4*EV)*(1.3D-17*ZETALOCAL)*DENSITY*ABUNDANCE(NH2) !20.0 -> 9.4 eV
 !      COSMICRAY_HEATING=(9.4*EV)*(1.3D-17*ZETALOCAL)*DENSITY
 
@@ -241,14 +241,18 @@
                    & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NCO)*DENSITY*(RATE(89)*(2.22*EV)+RATE(90)*(2.22*EV)+&
                    &RATE(91)*(2.22*EV))          ! He+  + CO
 #elif MEDIUM
-      CHEMICAL_HEATING=ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NELECT)*RATE(255)*10.9*EV& !H2+ + e-
-                   & + ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NH)*RATE(11)*0.94*EV& !H2+ + H
-                   & + ABUNDANCE(NHCOx)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(280)*(7.51*EV)) &                                         ! HCO+ + e-
-                   & + ABUNDANCE(NH3x)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(266)*(4.76*EV)+RATE(265)*(9.23*EV)) &                      ! H3+  + e-
-                   & + ABUNDANCE(NH3Ox)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(275)*(1.16*EV)+&
-                   &RATE(274)*(5.63*EV)+RATE(272)*(6.27*EV)) &                                                                            ! H3O+ + e-
-                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NH2)*DENSITY*(RATE(445)*(6.51*EV)+RATE(96)*(6.51*EV)) &                          ! He+  + H2
-                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NCO)*DENSITY*(RATE(553)*(2.22*EV))
+      CHEMICAL_HEATING=ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NELECT)*RATE(343)*10.9*EV& !H2+ + e- #255
+                   & + ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NH)*RATE(139)*0.94*EV& !H2+ + H #11
+                   & + ABUNDANCE(NHCOx)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(365)*(7.51*EV)) &
+                   ! HCO+ + e- #280
+                   & + ABUNDANCE(NH3x)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(356)*(4.76*EV)+RATE(355)*(9.23*EV)) &
+                           ! H3+  + e- #266, 265
+                   & + ABUNDANCE(NH3Ox)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(360)*(1.16*EV)+&
+                   &RATE(359)*(5.63*EV)+RATE(357)*(6.27*EV)) &
+                   ! H3O+ + e- #275, 274, 272
+                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NH2)*DENSITY*(RATE(124)*(6.51*EV)+RATE(611)*(6.51*EV)) &
+                           ! He+  + H2 #445, 96
+                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NCO)*DENSITY*(RATE(730)*(2.22*EV)) !553
 #elif FULL
       CHEMICAL_HEATING=ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NELECT)*RATE(670)*10.9*EV& !H2+ + e-
                    & + ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NH)*RATE(290)*0.94*EV& !H2+ + H
@@ -259,16 +263,18 @@
                    & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NH2)*DENSITY*(RATE(1227)*(6.51*EV)+RATE(265)*(6.51*EV)) &                          ! He+  + H2
                    & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NCO)*DENSITY*(RATE(1541)*(2.22*EV))
 #elif MYNETWORK
-      STOP "CHEMICAL_HEATING function has to be declared at &
-             & [sub_calculate_heating.F90] &
-             If you are using the pre-set 'mynetwork' network comment &
-             & out this STOP [sub_calculate_heating.F90]"
-     CHEMICAL_HEATING=ABUNDANCE(NHCOx)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(185)*(7.51*EV)) &                                         ! HCO+ + e-
-                   & + ABUNDANCE(NH3x)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(173)*(4.76*EV)+RATE(172)*(9.23*EV)) &                      ! H3+  + e-
-                   & + ABUNDANCE(NH3Ox)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(179)*(1.16*EV)+&
-                   &RATE(178)*(5.63*EV)+RATE(176)*(6.27*EV)) &                                                                            ! H3O+ + e-
-                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NH2)*DENSITY*(RATE(297)*(6.51*EV)+RATE(67)*(6.51*EV)) &                          ! He+  + H2
-                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NCO)*DENSITY*(RATE(364)*(2.22*EV))
+!      STOP "CHEMICAL_HEATING function has to be declared at &
+!             & [sub_calculate_heating.F90] &
+!             If you are using the pre-set 'mynetwork' network comment &
+!             & out this STOP [sub_calculate_heating.F90]"
+     CHEMICAL_HEATING=ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NELECT)*RATE(261)*10.9*EV& !H2+ + e-
+                   & + ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NH)*RATE(78)*0.94*EV& !H2+ + H
+                   & + ABUNDANCE(NHCOx)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(288)*(7.51*EV)) &                                         ! HCO+ + e-
+                   & + ABUNDANCE(NH3x)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(262)*(4.76*EV)+RATE(263)*(9.23*EV)) &                      ! H3+  + e-
+                   & + ABUNDANCE(NH3Ox)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(283)*(1.16*EV)+&
+                   &RATE(284)*(5.63*EV)+RATE(285)*(6.27*EV)) &                                                                            ! H3O+ + e-
+                    & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NH2)*DENSITY*(RATE(109)*(6.51*EV)+RATE(110)*(6.51*EV)) &                          ! He+  + H2
+                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NCO)*DENSITY*RATE(125)*(2.22*EV)          ! He+  + CO
 #endif
 
 !-----------------------------------------------------------------------
