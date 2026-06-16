@@ -148,6 +148,12 @@ endif
 ifeq ($(CHEMANALYSIS),1)
   CFLAGS += -DCHEMANALYSIS
 endif
+ifeq ($(CHEMSTEADY),1)
+  CFLAGS += -DCHEMSTEADY
+endif
+ifeq ($(CHEMRETRY),1)
+  CFLAGS += -DCHEMRETRY
+endif
 
 
 MODULE_OBJ += definitions.o healpix_types.o modules.o m_Mesh.o
