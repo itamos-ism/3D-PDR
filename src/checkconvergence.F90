@@ -23,6 +23,14 @@ do p=1,pdr_ptot
             ENDIF        
          ENDIF
       ENDDO
+      if (max(abs(pdr(p)%cooling(k)),abs(pdr(p)%coolant(k)%coolprev)).gt.1.0D-40) then
+         RELCH = 2.0D0*abs(pdr(p)%cooling(k)-pdr(p)%coolant(k)%coolprev) &
+               & /(abs(pdr(p)%cooling(k))+abs(pdr(p)%coolant(k)%coolprev))
+         if (RELCH.gt.1.0D-2) then
+            RELCH_conv = .false.
+            pdr(p)%coolant(k)%isconverged = .false.
+         endif
+      endif
    enddo
    pdr(p)%levelconverged = all([(pdr(p)%coolant(k)%isconverged, k = 1, coo)])
 enddo !p=1,pdr_ptot
