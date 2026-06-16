@@ -88,6 +88,13 @@
 #                       attempts per point) instead of forcing convergence
 #                       (recommended)
 #                   0 - Switch off (force convergence on stall)
+#SOBOLEV          : 1 - Sobolev (ALI-like) net radiative rates: A*beta and
+#                       beta*B*BB instead of the mean field (1-beta)*S+beta*BB.
+#                       Same solution, but removes the lagged self-coupling
+#                       that makes optically thick lines falsely converge
+#                       (<1% change per iteration while far from equilibrium),
+#                       which leaves spurious cooling at low Tgas (recommended)
+#                   0 - Switch off (original mean-field iteration)
 #------------------------------------------------------------------
 F90                  = gfortran
 CC                   = gcc
@@ -117,6 +124,8 @@ NGRELAX              = 1
 #Thermal balance
 ILLINOIS             = 1
 REBRACKET            = 1
+#Escape probability
+SOBOLEV              = 1
 ###
 RESTART              = 0
 OUTRAYINFO           = 0
