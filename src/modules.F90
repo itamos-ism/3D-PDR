@@ -137,6 +137,9 @@ MODULE maincode_module
 
 #ifdef THERMALBALANCE
   real(kind=dp) :: temp_Tgas
+#ifdef ILLINOIS
+  real(kind=dp) :: xlo,xhi,xnew,denom
+#endif
 #endif
   character(len=50)::paramFile
   character(len=50)::coolfile(1:30)
@@ -233,6 +236,10 @@ MODULE maincode_module
      real(kind=dp) :: Tlow
      real(kind=dp) :: Thigh
      logical       :: doleveltmin
+
+#ifdef REBRACKET
+     integer(kind=i4b) :: nrebracket
+#endif
 #endif
   end type pdr_node 
   type (pdr_node), allocatable :: pdr(:)      !main 3DPDR array for each grid point p
