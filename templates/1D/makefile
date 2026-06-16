@@ -92,6 +92,17 @@ ifeq ($(DIMENSIONS),1)
   CFLAGS += -DONEDIMENSIONAL
 endif
 
+ifeq ($(NGACCEL),1)
+  CFLAGS += -DNGACCEL
+endif
+ifeq ($(NGCYCLE),1)
+  CFLAGS += -DNGCYCLE
+endif
+ifeq ($(NGRELAX),1)
+  CFLAGS += -DNGRELAX
+endif
+
+
 ifeq ($(DUST),HTT91)
   CFLAGS += -DDUST
 endif
@@ -166,6 +177,9 @@ changetemperature.o UVfield.o CRattenuation.o columndensity.o partition_function
 lte_population.o allocations.o writeoutputs.o chemicaliterations.o  updatelte.o \
 coolingfunctions.o checkconvergence.o
 CODE_OBJ += calculate_abundances.o
+ifeq ($(NGACCEL),1)
+CODE_OBJ += ng_acceleration.o
+endif
 ifeq ($(CHEMANALYSIS),1)
 CODE_OBJ += analyse_chem.o
 endif
