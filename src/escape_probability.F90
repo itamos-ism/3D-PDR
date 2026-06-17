@@ -194,9 +194,9 @@ cooling_rate = 0.0D0
             line(ilevel,jlevel) = A_COEFFS(ilevel,jlevel)*HP*frequencies(ilevel,jlevel) * &
                                 & s_pop(ilevel)*beta_ij*(S_ij-BB_ij)/S_ij
          else
-            line(ilevel,jlevel) = A_COEFFS(ilevel,jlevel)*HP*frequencies(ilevel,jlevel)*beta_ij * &
-                                & ( s_pop(ilevel) - (BB_ij/TMP2)* &
-                                &   (s_pop(jlevel)*weights(ilevel)/weights(jlevel) - s_pop(ilevel)) )
+            line(ilevel,jlevel) = 0.0D0!A_COEFFS(ilevel,jlevel)*HP*frequencies(ilevel,jlevel)*beta_ij * &
+                                !& ( s_pop(ilevel) - (BB_ij/TMP2)* &
+                                !&   (s_pop(jlevel)*weights(ilevel)/weights(jlevel) - s_pop(ilevel)) )
          endif
          cooling_rate = cooling_rate + line(ilevel,jlevel)
 2 continue
