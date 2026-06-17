@@ -4,7 +4,7 @@ use maincode_module
 use global_module
 
 #ifdef OPENMP
-!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(p,ilevel,k,RELCH)
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(p,ilevel,k,RELCH) REDUCTION(.and. : RELCH_conv)
 #endif 
 do p=1,pdr_ptot
    pdr(p)%coolant(:)%isconverged=.true.
