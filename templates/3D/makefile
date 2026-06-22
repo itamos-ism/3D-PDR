@@ -184,7 +184,7 @@ find_Ccoeff.o read_input.o read_command_line.o \
 logo.o writeparams.o readdensity.o read_coolants.o initialization.o \
 changetemperature.o UVfield.o CRattenuation.o columndensity.o partition_function.o \
 lte_population.o allocations.o writeoutputs.o chemicaliterations.o updatelte.o \
-coolingfunctions.o checkconvergence.o
+coolingfunctions.o checkconvergence.o restart_io.o
 CODE_OBJ += calculate_abundances.o
 ifeq ($(NGACCEL),1)
 CODE_OBJ += ng_acceleration.o
