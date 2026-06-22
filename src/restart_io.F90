@@ -57,9 +57,7 @@ subroutine save_restart
      do k = 1, coo
         write(77) pdr(p)%coolant(k)%isconverged, pdr(p)%coolant(k)%pop
         write(77) pdr(p)%coolant(k)%line   ! output-only; converged points skip coolingfunctions
-#ifdef FREEZECOOL
         write(77) pdr(p)%coolant(k)%coolprev
-#endif
      enddo
   enddo
 
@@ -108,9 +106,7 @@ subroutine load_restart
      do k = 1, coo
         read(77) pdr(p)%coolant(k)%isconverged, pdr(p)%coolant(k)%pop
         read(77) pdr(p)%coolant(k)%line
-#ifdef FREEZECOOL
         read(77) pdr(p)%coolant(k)%coolprev
-#endif
         ! Make the solver state consistent with the restored populations so the
         ! first convergence check after restart compares like with like.
         pdr(p)%coolant(k)%solution = pdr(p)%coolant(k)%pop
