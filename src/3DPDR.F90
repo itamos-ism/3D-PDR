@@ -16,6 +16,8 @@ use maincode_local
 !call logo
 
 real(kind=dp)::thfpix, phfpix
+logical :: resume_step = .false.   ! first iteration after a RESTART resume
+logical :: chemstep                ! this iteration runs the chemistry/thermal-balance step
 
 call read_command_line
 call readparams
@@ -150,15 +152,6 @@ ITERATION = 0
 write(6,*) ''; write(6,*) 'Calculating LTE level populations' 
 
 
-!do p=1,pdr_ptot
-!  pdr(p)%bracketed=.false.
-!  pdr(p)%ill_last='N'
-!  pdr(p)%Flow=0.0d0
-!  pdr(p)%Fhigh=0.0d0
-!enddo
-
-call chemicaliterations(1,CHEMITERATIONS)
-
 do p=1,pdr_ptot
   do i=1,coo
     pdr(p)%coolant(i)%isconverged = .false.
@@ -178,6 +171,27 @@ do p=1,pdr_ptot
     allocate(pdr(p)%heating(i))
   enddo
 enddo
+
+#if defined RESTART && defined THERMALBALANCE
+if (restart) call load_restart   ! validates the file; clears 'restart' on mismatch
+if (restart) then
+  ! The checkpoint was written at a "level populations converged" step that was
+  ! about to run thermal balance. Resume in exactly that state: restored gas
+  ! temperatures, abundances, level populations, cooling and bracket - so the
+  ! level populations are NOT re-converged from LTE.
+  call calc_columndens          ! column densities depend on the restored abundances
+  level_conv = .true.
+  first_time = .false.
+  resume_step = .true.          ! make the first iteration a thermal-balance step (as right after a checkpoint)
+  write(6,*) ' [RESTART] resumed from saved level populations and temperatures'
+else
+  call chemicaliterations(1,CHEMITERATIONS)
+endif
+#else
+call chemicaliterations(1,CHEMITERATIONS)
+#endif
+
+
 
 write(6,*) ''
 write(6,*) '----------------'
@@ -200,16 +214,9 @@ DO ITERATION=1,ITERTOT
         levpop_iteration=levpop_iteration+1
         write(6,'(" Level population iteration = ",I3)') levpop_iteration
 
-#if defined RESTART && defined THERMALBALANCE
-        if (level_conv.and.first_time) then
-            do p=1,pdr_ptot
-               if (pdr(p)%restconverged) pdr(p)%fullyconverged = .true.
-            enddo
-        endif
-#endif
-
         !LTE/LVG computations
-        IF (iteration.gt.1.and.levpop_iteration.eq.1) THEN
+        chemstep = ((iteration.gt.1).or.resume_step).and.(levpop_iteration.eq.1)
+        IF (chemstep) THEN
                call chemicaliterations(2,3)
 #ifdef NGACCEL
                ng_nhist=0 !chemistry (and updatelte below) changes the fixed-point operator
@@ -220,9 +227,10 @@ DO ITERATION=1,ITERTOT
    
         call changetemperature
 
-        IF (iteration.gt.1.and.levpop_iteration.eq.1) THEN
+        IF (chemstep) THEN
                call updatelte
-       ENDIF
+        ENDIF
+        resume_step = .false.
 #ifdef THERMALBALANCE
         if (level_conv.and.first_time) first_time=.false.
         i=0
@@ -236,18 +244,17 @@ DO ITERATION=1,ITERTOT
 #ifdef NGACCEL
            ng_nhist=0 !temperatures changed this iteration; population history is stale
 #endif
-!           do p=1,pdr_ptot
-!             pdr(p)%bracketed=.false.
-!             pdr(p)%ill_last = 'N'
-!             pdr(p)%Flow=0.0d0
-!             pdr(p)%Fhigh=0.0d0
-!           enddo
         endif
         thermal_percentage = 100.D0*real(i,kind=dp)/real(pdr_ptot,kind=dp)
         write(*,'(" Thermal balance is ",F5.1,"% converged.")') thermal_percentage
         !write(*,'(" [",I6,"/",I6,"]")') i,pdr_ptot
         if (i.eq.pdr_ptot) then
              write(6,*) '#### Converged through thermal balance ####'
+#ifdef RESTART
+             ! Checkpoint the final fully-converged state so that restarting a
+             ! finished model is recognised as converged in a single iteration.
+             call save_restart
+#endif
              goto 2
         endif
 #endif
@@ -266,12 +273,9 @@ DO ITERATION=1,ITERTOT
              levpop_iteration=0
 #ifdef THERMALBALANCE
 #ifdef RESTART
-             close(77);open(unit=77,file=restart_file,status='replace',form='unformatted')
              out_file2 = trim(adjustl(restart_file))//"]"
              write(6,'(" Writing file [",A)') trim(adjustl(out_file2))
-             do p=1,pdr_ptot
-                 write(77) pdr(p)%fullyconverged,pdr(p)%Tgas,pdr(p)%abundance
-             enddo
+             call save_restart
 #endif
              write(6,*) 'Enabling thermal balance routine in next iteration'
              level_conv=.true.
