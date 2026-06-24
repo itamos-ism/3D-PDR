@@ -11,6 +11,7 @@
       USE DEFINITIONS
       USE HEALPIX_TYPES
       USE GLOBAL_MODULE
+      USE CHEMICAL_HEATING_MODULE, ONLY : CHEMICAL_HEATING_RATE
 
       IMPLICIT NONE
 
@@ -230,44 +231,11 @@
 !     with n(1) and n(2) the densities, K the rate coefficient [cm^3.s^-1], and E the energy [erg]
 !-----------------------------------------------------------------------
 
-#ifdef REDUCED
-      CHEMICAL_HEATING=ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NELECT)*RATE(216)*10.9*EV& !H2+ + e-
-                   & + ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NH)*RATE(155)*0.94*EV& !H2+ + H
-                   & + ABUNDANCE(NHCOx)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(240)*(7.51*EV)) &                                         ! HCO+ + e-
-                   & + ABUNDANCE(NH3x)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(217)*(4.76*EV)+RATE(218)*(9.23*EV)) &                      ! H3+  + e-
-                   & + ABUNDANCE(NH3Ox)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(236)*(1.16*EV)+&
-                   &RATE(237)*(5.63*EV)+RATE(238)*(6.27*EV)) &                                                                            ! H3O+ + e-
-                    & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NH2)*DENSITY*(RATE(50)*(6.51*EV)+RATE(170)*(6.51*EV)) &                          ! He+  + H2
-                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NCO)*DENSITY*(RATE(89)*(2.22*EV)+RATE(90)*(2.22*EV)+&
-                   &RATE(91)*(2.22*EV))          ! He+  + CO
-#elif MEDIUM
-      CHEMICAL_HEATING=ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NELECT)*RATE(343)*10.9*EV& !H2+ + e- #255
-                   & + ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NH)*RATE(139)*0.94*EV& !H2+ + H #11
-                   & + ABUNDANCE(NHCOx)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(365)*(7.51*EV)) &
-                   ! HCO+ + e- #280
-                   & + ABUNDANCE(NH3x)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(356)*(4.76*EV)+RATE(355)*(9.23*EV)) &
-                           ! H3+  + e- #266, 265
-                   & + ABUNDANCE(NH3Ox)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(360)*(1.16*EV)+&
-                   &RATE(359)*(5.63*EV)+RATE(357)*(6.27*EV)) &
-                   ! H3O+ + e- #275, 274, 272
-                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NH2)*DENSITY*(RATE(124)*(6.51*EV)+RATE(611)*(6.51*EV)) &
-                           ! He+  + H2 #445, 96
-                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NCO)*DENSITY*(RATE(730)*(2.22*EV)) !553
-#elif FULL
-      CHEMICAL_HEATING=ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NELECT)*RATE(670)*10.9*EV& !H2+ + e-
-                   & + ABUNDANCE(NH2x)*DENSITY*ABUNDANCE(NH)*RATE(290)*0.94*EV& !H2+ + H
-                   & + ABUNDANCE(NHCOx)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(730)*(7.51*EV)) &                                         ! HCO+ + e-
-                   & + ABUNDANCE(NH3x)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(706)*(4.76*EV)+RATE(705)*(9.23*EV)) &                      ! H3+  + e-
-                   & + ABUNDANCE(NH3Ox)*DENSITY*ABUNDANCE(NELECT)*DENSITY*(RATE(717)*(1.16*EV)+&
-                   &RATE(716)*(5.63*EV)+RATE(714)*(6.27*EV)) &                                                                            ! H3O+ + e-
-                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NH2)*DENSITY*(RATE(1227)*(6.51*EV)+RATE(265)*(6.51*EV)) &                          ! He+  + H2
-                   & + ABUNDANCE(NHEx)*DENSITY*ABUNDANCE(NCO)*DENSITY*(RATE(1541)*(2.22*EV))
-#elif MYNETWORK
-      STOP "CHEMICAL_HEATING function has to be declared at &
-             & [sub_calculate_heating.F90] &
-             If you are using the pre-set 'mynetwork' network comment &
-             & out this STOP [sub_calculate_heating.F90]"
-#endif
+!     Network-independent: the heating reactions are identified automatically
+!     (by reactants->products) in chemical_heating_module, so this block does
+!     not need editing when a new rates_NETWORK.d is used. See chemical_heating.F90.
+      CHEMICAL_HEATING = CHEMICAL_HEATING_RATE(ABUNDANCE,DENSITY,RATE,NSPEC,NREAC)
+
 
 !-----------------------------------------------------------------------
 !     Gas-grain collisional heating
