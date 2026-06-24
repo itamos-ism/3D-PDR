@@ -175,7 +175,7 @@ ifeq ($(CHEMRETRY),1)
 endif
 
 
-MODULE_OBJ += definitions.o healpix_types.o modules.o m_Mesh.o
+MODULE_OBJ += definitions.o healpix_types.o modules.o m_Mesh.o chemical_heating.o
 CODE_OBJ += healpix.o input_parameters.o solvlevpop.o \
 read_species.o read_rates.o heapsort.o calc_reac_rates.o shield.o \
 spline.o m_Ray_box.o escape_probability.o eval_points.o heatingfunctions.o \
@@ -244,4 +244,7 @@ m_Mesh.o : m_Mesh.F90
 	$(F90) $(CPPFLAGS) $(OPT) $(CFLAGS) -c $<
 
 healpix_types.o : definitions.o
+chemical_heating.o : healpix_types.o definitions.o
 modules.o : definitions.o healpix_types.o
+heatingfunctions.o : chemical_heating.o
+3DPDR.o : chemical_heating.o
