@@ -4,13 +4,6 @@
 ! Automatic identification of the exothermic chemical-heating reactions
 ! used by CHEMICAL_HEATING in heatingfunctions.F90.
 !
-! Previously those reactions were referenced by hard-wired RATE(index)
-! numbers, with a separate #ifdef block per network (REDUCED/MEDIUM/
-! MEDIUMS/SCUTUM/FULL/MYNETWORK). Those indices change whenever a reaction
-! moves position in rates_NETWORK.d, and a channel that is absent in a new
-! network had to be deleted by hand - so every new network meant editing
-! this routine.
-!
 ! Here the heating reactions are defined ONCE by their chemistry
 ! (reactants -> products, with the exothermicity in eV), independent of the
 ! network. init_chemical_heating scans the loaded network and tags every
@@ -28,15 +21,11 @@
 !
 ! To add a heating channel for a future network you edit the readable table
 ! in init_chemical_heating (reactants, products, energy) - never an index.
-!
-! Gated by the AUTOCHEMHEAT flag; with AUTOCHEMHEAT=0 the original
-! per-network hard-wired blocks in heatingfunctions.F90 are used instead.
 !=======================================================================
 module chemical_heating_module
   use healpix_types
   implicit none
 
-#ifdef AUTOCHEMHEAT
   private
   public :: init_chemical_heating, chemical_heating_rate, chemheat_ready
 
@@ -206,6 +195,5 @@ contains
     enddo
     multiset_eq=.true.
   end function multiset_eq
-#endif
 
 end module chemical_heating_module
