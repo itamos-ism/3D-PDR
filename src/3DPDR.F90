@@ -11,6 +11,9 @@ use omp_lib
 #endif
 use chemistry_module
 use maincode_local
+#ifdef AUTOCHEMHEAT
+use chemical_heating_module, only : init_chemical_heating
+#endif
 !use m_IOAndVisu
 
 !call logo
@@ -42,6 +45,10 @@ call allocations
 call readcoolants
 call read_species(nspec, species, init_abundance, mass)
 call READ_RATES(NREAC,REACTANT,PRODUCT,ALPHA,BETA,GAMMA,rate,DUPLICATE,RTMIN,RTMAX)
+#ifdef AUTOCHEMHEAT
+! Identify the exothermic chemical-heating reactions in this network automatically
+call init_chemical_heating(NREAC,REACTANT,PRODUCT,NSPEC,SPECIES)
+#endif
 
 !HEALPix setup
 nside=2**level
