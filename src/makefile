@@ -209,9 +209,6 @@ endif
 ifeq ($(NETWORK),MYNETWORK)
 CODE_OBJ += odes_mynetwork.o
 endif
-ifeq ($(NETWORK),NEWNETWORK)
-CODE_OBJ += odes_NEWNETWORK.o
-endif
 ifeq ($(DUST),HTT91)
 CODE_OBJ += dust_t.o
 endif

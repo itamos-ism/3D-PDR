@@ -173,6 +173,9 @@ endif
 ifeq ($(CHEMRETRY),1)
   CFLAGS += -DCHEMRETRY
 endif
+ifeq ($(LEVMAX),1)
+  CFLAGS += -DLEVMAX
+endif
 
 
 MODULE_OBJ += definitions.o healpix_types.o modules.o m_Mesh.o chemical_heating.o
