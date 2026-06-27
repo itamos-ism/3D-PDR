@@ -138,18 +138,6 @@ referee=1
 
 start_time = 0.0D0
 
-#if defined RESTART && defined THERMALBALANCE
-if (restart) then
-   open(unit=77,file=restart_file,status='old',form='unformatted')
-   do p=1,pdr_ptot
-     read(77) pdr(p)%restconverged,pdr(p)%Tgas,pdr(p)%abundance
-     pdr(p)%nTgas = pdr(p)%Tgas
-     pdr(p)%Tlow = pdr(p)%Tgas/2.0
-     pdr(p)%Thigh = pdr(p)%Tgas*1.5
-   enddo
-endif
-#endif
-
 ITERATION = 0
 !======== LTE LEVEL POPULATIONS ============
 write(6,*) ''; write(6,*) 'Calculating LTE level populations' 
