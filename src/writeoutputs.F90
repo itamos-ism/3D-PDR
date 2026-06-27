@@ -246,6 +246,9 @@ close(21)
 #elif FULL
    write(16,*) 'FULL'
 #endif
+#ifdef LEVMAX
+   if (lmax_levels.gt.0) write(16,'(a,i0)') 'LMAX=', lmax_levels
+#endif
    do k=1,coo
      write(16,*) coolfile(k)
    enddo

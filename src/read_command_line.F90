@@ -1,15 +1,19 @@
 SUBROUTINE read_command_line
 !T.Bisbas, T.Bell
     use definitions
+#ifdef LEVMAX
+    use maincode_module, only : paramFile, lmax_levels
+#else
     use maincode_module, only : paramFile
+#endif
 
     integer :: commandLineCount, iarg, argIndex
     character(len=50)::arg,param,val
     character :: delim
 
-    delim = '='    
+    delim = '='
     commandLineCount = command_argument_count()
-    
+
     if (commandLineCount.gt.0) then
         do iarg = 1, commandLineCount
             param = ''
@@ -31,12 +35,29 @@ SUBROUTINE read_command_line
                 endif
                 paramFile = val
                 write(6,*) "Using user provided param file: ", paramFile
+#ifdef LEVMAX
+            case ('-lmax')
+                if (val.eq.'') then
+                    write(6,*) "User must provide max levels as -lmax=N (integer >= 1)"
+                    stop
+                endif
+                read(val,*) lmax_levels
+                if (lmax_levels.lt.1) then
+                    write(6,*) "ERROR: -lmax value must be >= 1, got: ", lmax_levels
+                    stop
+                endif
+                write(6,'(a,i4)') " [LEVMAX] Maximum coolant levels capped at:", lmax_levels
+#endif
             case ('-h', '--help')
                 write(6,*) "Allowed parameters to be passed into 3DPDR: "
                 write(6,*) "============================================"
                 write(6,*) "-h, --help        Write out the help menu"
                 write(6,*) "-p, --params      Provide a parameter file (50 char max)"
                 write(6,*) "                  e.g. -p=paramInput.dat"
+#ifdef LEVMAX
+                write(6,*) "-lmax=N           Cap max energy levels per coolant at N"
+                write(6,*) "                  (omit to use all levels from LAMDA file)"
+#endif
                 write(6,*) "============================================"
                 stop
             case default

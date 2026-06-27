@@ -95,6 +95,16 @@
 #                       (<1% change per iteration while far from equilibrium),
 #                       which leaves spurious cooling at low Tgas (recommended)
 #                   0 - Switch off (original mean-field iteration)
+#LEVMAX           : 1 - enable the -lmax=N command-line flag, which caps the
+#                       number of energy levels loaded per coolant at N. Run as
+#                       ./3DPDR -lmax=15 to load at most 15 levels; omit the
+#                       flag to use all levels from the LAMDA file (backward
+#                       compatible). The level-population line array scales as
+#                       N^2 per cell, so truncation (N=10-15) can cut coolant
+#                       RAM by 3-6x with <0.1% change in Tgas (tested on the
+#                       default params.dat model). c+.dat, 12c.dat and 16o.dat
+#                       have <=5 levels and are unaffected at any N>=5.
+#                   0 - switch off (default; -lmax is an unrecognised option)
 #------------------------------------------------------------------
 F90                  = gfortran
 CC                   = gcc
@@ -130,3 +140,4 @@ SOBOLEV              = 1
 RESTART              = 0
 OUTRAYINFO           = 0
 CHEMANALYSIS         = 1
+LEVMAX		     = 0
