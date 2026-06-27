@@ -39,12 +39,12 @@ close(21)
 !-------------------------------------
 !OUTPUT FOR CHEMICAL ANALYSIS
 !-------------------------------------
-out_file = trim(adjustl(output))//".rates.fin"
+out_file = trim(adjustl(output))//".chemanalysis.fin"
 out_file2 = trim(adjustl(out_file))//"]"
 write(6,'(" Writing file [",A)') trim(adjustl(out_file2))
 open(unit=98,file=out_file,status='replace')
 do p=1,pdr_ptot
-   call analyse_chemistry(p, end_time, pdr(p)%rho, pdr(p)%Tgas, &
+   call analyse_chemistry(pdr(p)%x, pdr(p)%UVfield, pdr(p)%zetalocal, p, end_time, pdr(p)%rho, pdr(p)%Tgas, &
      &12, pdr(p)%AV(6), nspec, species,pdr(p)%abundance(1:nspec),nreac, reactant, &
      & product, temp_rate(:,p))
 enddo

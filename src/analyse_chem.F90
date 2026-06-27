@@ -1,9 +1,33 @@
 !=======================================================================
-      SUBROUTINE ANALYSE_CHEMISTRY(GRIDPOINT,TIME,DENSITY,TEMPERATURE, &
+      SUBROUTINE ANALYSE_CHEMISTRY(POS,LOCRAD,LOCCR,GRIDPOINT,TIME,DENSITY,TEMPERATURE, &
      &                             NRAYS,AV,NSPEC,SPECIES,ABUNDANCE, &
      &                             NREAC,REACTANT,PRODUCT,RATE)
 
 !T.Bell
+!
+!     Outputs the dominant formation and destruction pathways of EVERY
+!     species in the active chemical network, for every grid point.
+!
+!     The original routine only examined a hardcoded list of 11 species
+!     and wrote a verbose, human-readable report. Because we now emit the
+!     whole network the file would be enormous in that format, so the
+!     output below is deliberately compact and machine-parseable. It is
+!     read back by PDR-studio (pdrstudio/chemanalysis.py) for the
+!     Chemical Analysis feature.
+!
+!     File layout (whitespace-separated, '#' comment lines are headers):
+!
+!       # 3D-PDR chemanalysis v1
+!       # nspec=<N> nreac=<M> time=<t> yr
+!       R <id> <reactant tokens ...> > <product tokens ...>   (once, M lines)
+!       P <point> <x_pc> <Av> <nH> <Tgas> <FUV> <CR_s-1>      (per grid point)
+!       S <id> <species> <abundance> <Ptot_s-1> <Dtot_s-1>    (per species)
+!       <reaction_id> <signed_percent>   (+ = formation, - = destruction)
+!
+!     The reaction legend (R lines) is written once, on the first grid
+!     point, so the bulky reaction strings are never repeated. Each
+!     reaction is referenced thereafter by its 1-based index <id>, which
+!     is the reaction's record order in chemfiles/rates_*.d.
 
       USE DEFINITIONS
       USE HEALPIX_TYPES
@@ -12,41 +36,57 @@
       IMPLICIT NONE
 
       INTEGER(KIND=I4B), INTENT(IN) :: GRIDPOINT,NRAYS,NSPEC,NREAC
-      REAL(KIND=DP),     INTENT(IN) :: TIME,DENSITY,TEMPERATURE
-      !REAL(KIND=DP),     INTENT(IN) :: AV(0:NRAYS-1),ABUNDANCE(1:NSPEC),RATE(1:NREAC)
+      REAL(KIND=DP),     INTENT(IN) :: POS,LOCRAD,LOCCR,TIME,DENSITY,TEMPERATURE
       REAL(KIND=DP),     INTENT(IN) :: AV,ABUNDANCE(1:NSPEC),RATE(1:NREAC)
       CHARACTER(LEN=10), INTENT(IN) :: SPECIES(1:NSPEC),REACTANT(1:NREAC,1:3),PRODUCT(1:NREAC,1:4)
 
-      INTEGER(KIND=I4B) :: I,J,L,M,N,IP,ID
+      INTEGER(KIND=I4B) :: I,J,K,M,N,IP,ID
       INTEGER(KIND=I4B) :: NPR(1:NREAC),NDR(1:NREAC)
       INTEGER(KIND=I4B) :: NMAX(1),TOTAL
       REAL(KIND=DP)     :: X1,X2,RMULT,PERCENT
       REAL(KIND=DP)     :: P(1:NREAC),PTOT
       REAL(KIND=DP)     :: D(1:NREAC),DTOT
+      CHARACTER(LEN=256):: LINEBUF
 
-!     Specify the number of species to examine and their names
-      INTEGER(KIND=I4B), SAVE :: NLIST=6
-!      CHARACTER(LEN=10), SAVE :: SPECLIST(1:7)=&
-!     &      (/"H2        ","CO        ","C         ",&
-!     & "C+        ","CH        ","OH        ","e-        "/)
-      CHARACTER(LEN=10), SAVE :: SPECLIST(1:6)=&
-     &      (/"H3+       ","C         ","CO        ","C+        ", &
-     &     "He+       ","e-        "/)
+!-----------------------------------------------------------------------
+!     On the first grid point, write the file header and the reaction
+!     legend. The legend maps each reaction index to its equation, so the
+!     per-point data below only ever has to quote the (integer) index.
+!-----------------------------------------------------------------------
+      IF(GRIDPOINT.EQ.1) THEN
+         WRITE(98,'(A)') '# 3D-PDR chemanalysis v1'
+         WRITE(98,'(A,I0,A,I0,A,ES12.5,A)') &
+     &        '# nspec=',NSPEC,' nreac=',NREAC,' time=',TIME,' yr'
+         WRITE(98,'(A)') '# R <id> <reactants ...> > <products ...>'
+         WRITE(98,'(A)') '# P <point> <x_pc> <Av> <nH> <Tgas> <FUV> <CR_s-1>'
+         WRITE(98,'(A)') '# S <id> <species> <abundance> <Ptot_s-1> <Dtot_s-1>'
+         WRITE(98,'(A)') '# <reaction_id> <signed_percent>  (+ formation, - destruction)'
 
-      WRITE(98,6)
-      DO L=1,NLIST
-!        Find index I of the species that corresponds
-!        to the current entry in the SPECLIST array
-         DO I=1,NSPEC
-            IF(SPECIES(I).EQ.SPECLIST(L)) EXIT
+         DO J=1,NREAC
+            WRITE(LINEBUF,'(A,I0)') 'R ',J
+            DO K=1,3
+               IF(TRIM(ADJUSTL(REACTANT(J,K))).NE.'') &
+     &            LINEBUF=TRIM(LINEBUF)//' '//TRIM(ADJUSTL(REACTANT(J,K)))
+            ENDDO
+            LINEBUF=TRIM(LINEBUF)//' >'
+            DO K=1,4
+               IF(TRIM(ADJUSTL(PRODUCT(J,K))).NE.'') &
+     &            LINEBUF=TRIM(LINEBUF)//' '//TRIM(ADJUSTL(PRODUCT(J,K)))
+            ENDDO
+            WRITE(98,'(A)') TRIM(LINEBUF)
          ENDDO
+      ENDIF
 
-!        Check that species I corresponds to the desired species
-!        Continue to the next entry in SPECLIST if it does not
-         IF(SPECIES(I).NE.SPECLIST(L)) CYCLE
+!-----------------------------------------------------------------------
+!     Per grid point header: position, environment and physical state.
+!-----------------------------------------------------------------------
+      WRITE(98,'(A,I0,6(1X,ES12.5))') 'P ',GRIDPOINT, &
+     &     POS,AV,DENSITY,TEMPERATURE,LOCRAD,LOCCR*1.3D-17
 
-         !WRITE(98,4) GRIDPOINT,TIME,MINVAL(AV),DENSITY,TEMPERATURE,SPECIES(I)
-         WRITE(98,4) GRIDPOINT,TIME,AV,DENSITY,TEMPERATURE,SPECIES(I)
+!-----------------------------------------------------------------------
+!     Loop over EVERY species in the network.
+!-----------------------------------------------------------------------
+      DO I=1,NSPEC
 
 !        Reset the formation/destruction rate counters
          IP=0
@@ -145,108 +185,55 @@
          IF(DTOT.LT.1.0D-99) DTOT=1.0D-99
 
 !-----------------------------------------------------------------------
-!        Output the formation reactions and their rates
+!        Species record: index, name, abundance and total rates.
 !-----------------------------------------------------------------------
+         WRITE(98,'(A,I0,1X,A,3(1X,ES12.5))') 'S ',I, &
+     &        TRIM(ADJUSTL(SPECIES(I))),ABUNDANCE(I),PTOT,DTOT
 
+!-----------------------------------------------------------------------
+!        Output the formation reactions (positive percentages),
+!        in order of decreasing importance, until they sum to 100%.
+!-----------------------------------------------------------------------
          NMAX=0
          TOTAL=0
-
-!        List the formation reactions in order of decreasing importance
          DO M=1,IP
-!           Find the location of the maximum value
             NMAX=MAXLOC(P(1:IP))
             N=NMAX(1)
-!           Exit the loop once the reaction rates reach zero
             IF(P(N).EQ.0.0D0) EXIT
 
-!           Calculate the percentage of the total formation
-!           rate that is contributed by the current reaction
             PERCENT=1.0D2*(P(N)/PTOT)
             IF(PERCENT.LT.0.5D0) PERCENT=1.0D0
             TOTAL=TOTAL+NINT(PERCENT)
 
+            WRITE(98,'(I0,1X,I0)') NPR(N),NINT(PERCENT)
 
-            IF(PRODUCT(NPR(N),3).EQ." ") THEN
-               WRITE(98,1) (REACTANT(NPR(N),J),J=1,2),(PRODUCT(NPR(N),J),J=1,2),NINT(PERCENT)
-            ELSE IF(PRODUCT(NPR(N),4).EQ." ") THEN
-               WRITE(98,2) (REACTANT(NPR(N),J),J=1,2),(PRODUCT(NPR(N),J),J=1,3),NINT(PERCENT)
-            ELSE
-               WRITE(98,3) (REACTANT(NPR(N),J),J=1,2),(PRODUCT(NPR(N),J),J=1,4),NINT(PERCENT)
-            ENDIF
-
-!           Exit the loop once the sum of the reaction rates reaches 100%
             IF(TOTAL.GE.100) EXIT
-
-!           Set the formation rate of this reaction to zero
-!           to prevent it from being included more than once
             P(N)=0.0D0
-
-!        End of loop over formation reactions
          ENDDO
-         WRITE(98,*)
 
 !-----------------------------------------------------------------------
-!        Output the destruction reactions and their rates
+!        Output the destruction reactions (negative percentages),
+!        in order of decreasing importance, until they sum to 100%.
 !-----------------------------------------------------------------------
-
          NMAX=0
          TOTAL=0
-
-!        List the destruction reactions in order of decreasing importance
          DO M=1,ID
-!           Find the location of the maximum value
             NMAX=MAXLOC(D(1:ID))
             N=NMAX(1)
-
-!           Exit the loop once the reaction rates reach zero
             IF(D(N).EQ.0.0D0) EXIT
 
-!           Calculate the percentage of the total destruction
-!           rate that is contributed by the current reaction
             PERCENT=1.0D2*(D(N)/DTOT)
             IF(PERCENT.LT.0.5D0) PERCENT=1.0D0
             TOTAL=TOTAL+NINT(PERCENT)
 
-            IF(PRODUCT(NDR(N),3).EQ." ") THEN
-               WRITE(98,1) (REACTANT(NDR(N),J),J=1,2),(PRODUCT(NDR(N),J),J=1,2),-NINT(PERCENT)
-            ELSE IF(PRODUCT(NDR(N),4).EQ." ") THEN
-               WRITE(98,2) (REACTANT(NDR(N),J),J=1,2),(PRODUCT(NDR(N),J),J=1,3),-NINT(PERCENT)
-            ELSE
-               WRITE(98,3) (REACTANT(NDR(N),J),J=1,2),(PRODUCT(NDR(N),J),J=1,4),-NINT(PERCENT)
-            ENDIF
+            WRITE(98,'(I0,1X,I0)') NDR(N),-NINT(PERCENT)
 
-!           Exit the loop once the sum of the reaction rates reaches 100%
             IF(TOTAL.GE.100) EXIT
-
-!           Set the destruction rate of this reaction to zero
-!           to prevent it from being included more than once
             D(N)=0.0D0
-
-!        End of loop over destruction reactions
          ENDDO
-         WRITE(98,*)
 
-!-----------------------------------------------------------------------
-
-!        Output the abundance and total formation/destruction rates
-         WRITE(98,5) ABUNDANCE(I),PTOT,DTOT
-         WRITE(98,6)
-
-!        End of loop over SPECLIST array
+!     End of loop over species
       ENDDO
-      WRITE(98,7)
-
- 1    FORMAT(3X,A10,'+',3X,A10,'-->',3X,A10,'+',3X,A10,12X,'Rate:',I4,'%')
- 2    FORMAT(3X,A10,'+',3X,A10,'-->',3X,A10,'+',3X,A10,'+',3X,A5,3X,'Rate:',I4,'%')
- 3    FORMAT(3X,A10,'+',3X,A10,'-->',3X,A10,'+',3X,A10,'+',3X,A5,3X,'+',3X,A5,3X,'Rate:',I4,'%')
- 4    FORMAT('Gridpoint =',I7,', t =',1PE7.1E1,' yr, Av =',1PE7.1E1,' mag',/, &
-     &       'n_H =',1PE7.1E1,' cm-3, T_gas =',1PE7.1E1,' K',/, &
-     &       'Species = ',A10,/)
- 5    FORMAT('Abundance        =',1PE10.3,/, &
-     &       'Formation Rate   =',1PE10.3,' s-1',/, &
-     &       'Destruction Rate =',1PE10.3,' s-1',/)
- 6    FORMAT(80('-'),/)
- 7    FORMAT(80('='),/)
 
       RETURN
       END SUBROUTINE ANALYSE_CHEMISTRY
