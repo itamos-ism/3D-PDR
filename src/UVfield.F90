@@ -82,7 +82,7 @@ DO p=1,pdr_ptot
 #endif
 #endif
      pdr(p)%AV(j) = pdr(p)%AV(j)*AV_fac
-     if (pdr(p)%AV(j).gt.100.0) pdr(p)%AV(j)=100.0D0 !limiting AV to avoid numerical errors
+!     if (pdr(p)%AV(j).gt.100.0) pdr(p)%AV(j)=100.0D0 !limiting AV to avoid numerical errors
   ENDDO
 #ifdef ONEDIMENSIONAL
    pdr(p)%rad_surface = 0.0D0
