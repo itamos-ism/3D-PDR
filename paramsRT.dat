@@ -1,0 +1,4 @@
+sims      !Directory of PDR output
+test      !Model prefix
+1         !Vturb (km/s)
+0         !redshift
