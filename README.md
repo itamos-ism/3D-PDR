@@ -50,15 +50,17 @@ $ source ~/.bashrc
 
 ### PDR-studio
 
-Go to the `PDR-studio/` directory you will find in the `3D-PDR/` folder you have cloned the code. You will see the `run.sh` file:
+Navigate to the `PDR-studio/` directory inside your cloned `3D-PDR/` repository and run the following:
 
-```console
+```bash
 $ chmod 755 run.sh
 $ ./run.sh
 ```
 
-This will install all requirements needed for the PDR-studio to run. This will be done only once. After the installation finishes, you will be prompted with IP addresses. If your browser does not start automatically, CTRL+Click on one of the two IP addresses.
+This will install all required dependencies — this step only runs once. Once the installation completes, you will be prompted with IP addresses. If your browser does not open automatically, Ctrl+Click on one of the displayed addresses.
 
-Now run and analyse your models with **PDR-studio**.
+You are now ready to run and analyse your models with PDR-studio.
 
-Note that in the Chemical Analysis section, you will need to install the Ollama LLM model. Follow the instructions you will see on that section if you wish to generate AI summaries of the model you run. 
+> **Note:** The Chemical Analysis section requires an Ollama LLM model to generate AI summaries of your results. Instructions for installing and configuring Ollama are provided within that section.
+````
+
