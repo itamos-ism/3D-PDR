@@ -57,7 +57,7 @@ $ chmod 755 run.sh
 $ ./run.sh
 ```
 
-This will install all required dependencies — this step only runs once. Once the installation completes, you will be prompted with IP addresses. If your browser does not open automatically, Ctrl+Click on one of the displayed addresses.
+This will install all required dependencies. This step only runs once. Once the installation completes, you will be prompted with IP addresses. If your browser does not open automatically, Ctrl+Click on one of the displayed addresses.
 
 You are now ready to run and analyse your models with PDR-studio.
 
