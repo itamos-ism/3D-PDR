@@ -62,5 +62,4 @@ This will install all required dependencies. This step only runs once. Once the 
 You are now ready to run and analyse your models with PDR-studio.
 
 > **Note:** The Chemical Analysis section requires an Ollama LLM model to generate AI summaries of your results. Instructions for installing and configuring Ollama are provided within that section.
-````
 
