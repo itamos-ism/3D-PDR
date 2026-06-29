@@ -7,7 +7,7 @@ Click [here](http://itamos.readthedocs.io/) to visit the manual of the ITAMOS pr
 
 ### SUNDIALS
 
-You need to have `cmake` already installed in your system.
+You will need to have `cmake` already installed in your system.
 
 Install SUNDIALS using the following commands in a directory where you will generally have the 3D-PDR code.
 
