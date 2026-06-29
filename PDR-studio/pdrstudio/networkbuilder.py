@@ -264,6 +264,45 @@ def valid_name(name: str) -> bool:
     return bool(_NAME_RE.match(name or ""))
 
 
+def _patch_writeoutputs_network(path: Path, name: str) -> bool:
+    """Add a '#elif NAME / write(16,*) NAME' branch to the RTspop.fin ifdef chain
+    in writeoutputs.F90, just before its closing #endif. Idempotent."""
+    if not path.exists():
+        return False
+    text = path.read_text()
+    if re.search(rf"#elif\s+{re.escape(name)}\b", text):
+        return False
+    # Match the last '#elif WORD\n  indent  write(16,*) 'WORD'\n' immediately
+    # before '#endif' — that is the final branch of the RTspop network chain.
+    m = re.search(
+        r"(#elif\s+\w+\s*\n([ \t]*)write\(16,\*\)\s*'\w+'\s*\n)([ \t]*#endif)",
+        text,
+    )
+    if not m:
+        return False
+    indent = m.group(2)
+    branch = f"#elif {name}\n{indent}write(16,*) '{name}'\n"
+    path.write_text(text[: m.end(1)] + branch + text[m.end(1) :])
+    return True
+
+
+def _patch_readparams_network(path: Path, name: str) -> bool:
+    """Add a 'case (NAME)' branch to rt_chemsuf in readparams.F90, just before
+    'case default'. Idempotent."""
+    if not path.exists():
+        return False
+    text = path.read_text()
+    if re.search(rf"case\s*\(\s*'{re.escape(name)}'\s*\)", text):
+        return False
+    m = re.search(r"([ \t]*case\s+default\s*;)", text)
+    if not m:
+        return False
+    indent = re.match(r"([ \t]*)", m.group(1)).group(1)
+    branch = f"{indent}case ('{name}');   suf = '{name}.d'\n"
+    path.write_text(text[: m.start()] + branch + text[m.start() :])
+    return True
+
+
 def _patch_suffix_fortran(path: Path, name: str) -> bool:
     """Add a ``#elif <NAME>`` branch to a file's suffix ``#ifdef`` chain, right
     after the last existing branch. Idempotent. Returns True if changed."""
@@ -342,7 +381,19 @@ def import_network(result: BuildResult, set_active: bool = True) -> ImportReport
         else:
             skipped.append(f"src/{fn} (already has branch or pattern not found)")
 
-    # 4) config.mk -> NETWORK = NAME
+    # 4) writeoutputs.F90 — RTspop.fin network name ifdef chain
+    if _patch_writeoutputs_network(srcdir / "writeoutputs.F90", name):
+        patched.append("src/writeoutputs.F90")
+    else:
+        skipped.append("src/writeoutputs.F90 (already has branch or pattern not found)")
+
+    # 5) RT-tool/readparams.F90 — rt_chemsuf case branch
+    if _patch_readparams_network(paths.rt_tool_dir() / "readparams.F90", name):
+        patched.append("RT-tool/readparams.F90")
+    else:
+        skipped.append("RT-tool/readparams.F90 (already has branch or pattern not found)")
+
+    # 7) config.mk -> NETWORK = NAME
     if set_active and paths.config_mk().exists():
         cfg = config.read_config()
         cfg["NETWORK"] = name

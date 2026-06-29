@@ -182,9 +182,11 @@ if res and res.name == name:
     st.caption(
         f"Copies `species_{name}.d` and `rates_{name}.d` → `chemfiles/`, "
         f"`odes_{name}.c` → `src/`, and wires `NETWORK = {name}` into `config.mk`, "
-        "the `makefile`, and the suffix `#ifdef` blocks of `read_species.F90`, "
-        "`read_rates.F90` and `input_parameters.F90`. Chemical heating is handled "
-        "automatically by `AUTOCHEMHEAT`, so `heatingfunctions.F90` is left untouched. "
+        "the `makefile`, the suffix `#ifdef` blocks of `read_species.F90`, "
+        "`read_rates.F90` and `input_parameters.F90`, the RTspop.fin network-name "
+        "block of `src/writeoutputs.F90`, and the `rt_chemsuf` case in "
+        "`RT-tool/readparams.F90`. Chemical heating is handled automatically by "
+        "`AUTOCHEMHEAT`, so `heatingfunctions.F90` is left untouched. "
         "Then recompile in ⚙️ Code Configuration.")
     if st.button(f"📥 Import “{name}” into 3D-PDR", type="primary"):
         try:
