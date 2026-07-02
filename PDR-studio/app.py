@@ -17,6 +17,7 @@ ui.sidebar_header()
 
 nav = st.navigation([
     st.Page("home.py", title="Home", icon="🏠", default=True),
+    st.Page("pages/0_📖_Tutorial.py", title="Tutorial", icon="📖"),
     st.Page("pages/1_⚙️_Code_Configuration.py", title="Code Configuration", icon="⚙️"),
     st.Page("pages/2_📐_Model_Parameters.py", title="Model Parameters", icon="📐"),
     st.Page("pages/3_📡_Line_emission.py", title="Line emission", icon="📡"),
