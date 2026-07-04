@@ -142,9 +142,7 @@ MODULE maincode_module
 #endif
 #endif
   character(len=50)::paramFile
-#ifdef LEVMAX
   integer(kind=i4b) :: lmax_levels = 0
-#endif
   character(len=50)::coolfile(1:30)
   integer::coo,cur_nlev,cur_ntemp
   real(kind=dp),allocatable::temp_pop(:)

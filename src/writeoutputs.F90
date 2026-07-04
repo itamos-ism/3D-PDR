@@ -3,6 +3,7 @@ subroutine writeoutputs
 use healpix_types
 use maincode_module
 use global_module
+use m_Mesh, only: nxc, nyc, nzc, xlx, yly, zlz
 
 #if (defined(OUTRAYINFO) &&  !defined(ONEDIMENSIONAL))
 character(len=100) :: outFormat
@@ -59,7 +60,15 @@ close(98)
    out_file2 = trim(adjustl(out_file))//"]"
    write(6,'(" Writing file [",A)') trim(adjustl(out_file2))
    open(unit=21,file=out_file,status='replace')
-   write(21,'(3ES11.3)') Gext(1), zeta*1.3d-17, metallicity
+#ifdef CRATTENUATION
+#if CRATTENUATION == 1
+   write(21,'(ES11.3,2X,A1,2X,2ES11.3)') Gext(1), crfieldchoice, metallicity, v_turb_inp
+#endif
+#else
+   write(21,'(4ES11.3)') Gext(1), zeta*1.3d-17, metallicity, v_turb_inp
+#endif
+   write(21,'(3I5)') nxc, nyc, nzc
+   write(21,'(3ES11.3)') xlx, yly, zlz
    close(21)
 
 
@@ -230,6 +239,17 @@ close(21)
 !--------------------------------
 #endif
 
+!-------------------------------------
+!OUTPUT FOR SPECIES USED
+!-------------------------------------
+   out_file = trim(adjustl(output))//".species"
+   out_file2 = trim(adjustl(out_file))//"]"
+   write(6,'(" Writing file [",A)') trim(adjustl(out_file2))
+   open(unit=21,file=out_file,status='replace')
+   do i=1,nspec
+     write(21,*) i,species(i)
+   enddo
+   close(21)
 
 !----------------------------
 !OUTPUT FOR RTtool
@@ -246,9 +266,7 @@ close(21)
 #elif FULL
    write(16,*) 'FULL'
 #endif
-#ifdef LEVMAX
-   if (lmax_levels.gt.0) write(16,'(a,i0)') 'LMAX=', lmax_levels
-#endif
+   write(16,'(a,i0)') 'LMAX=', lmax_levels
    do k=1,coo
      write(16,*) coolfile(k)
    enddo

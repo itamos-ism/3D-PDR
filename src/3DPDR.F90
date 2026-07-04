@@ -155,12 +155,8 @@ do p=1,pdr_ptot
 #endif
   pdr(p)%doleveltmin    = .false.
 #endif
-  do i=1,coo
-    allocate(pdr(p)%cooling(i))
-  enddo
-  do i=1,12
-    allocate(pdr(p)%heating(i))
-  enddo
+  allocate(pdr(p)%cooling(coo))
+  allocate(pdr(p)%heating(12))
 enddo
 
 #if defined RESTART && defined THERMALBALANCE
