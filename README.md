@@ -48,7 +48,7 @@ Then, reload your shell configuration:
 $ source ~/.bashrc
 ```
 
-### PDR-studio
+## PDR-studio
 
 Navigate to the `PDR-studio/` directory inside your cloned `3D-PDR/` repository and run the following:
 
