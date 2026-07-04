@@ -1,4 +1,4 @@
-# PDR-studio-dev
+# PDR-studio
 
 A browser-based control panel for **3D-PDR**. Configure, compile, run, and
 analyse PDR models from a friendly local web app — no terminal required.
@@ -17,6 +17,12 @@ cd PDR-studio
 .venv/bin/streamlit run app.py
 ```
 
+To make PDR-studio reachable from other machines on your local network, use
+`./run-lan.sh` instead — it prints the address to share (e.g.
+`http://<your-ip>:8501`). Anyone who can reach that address gets the full app,
+which can compile/run 3D-PDR and execute arbitrary Python typed into the
+**Custom plot** tabs *on this machine*; only use it on a trusted network.
+
 ## Layout
 
 ```
@@ -24,26 +30,34 @@ PDR-studio/
   app.py                  # entry point: st.navigation (Home + feature pages)
   home.py                 # Home / welcome page
   pages/                  # one file per feature (titles/icons set in app.py)
+    0_📖_Tutorial.py               # in-app walkthrough, sidebar top-to-bottom
     1_⚙️_Code_Configuration.py
     2_📐_Model_Parameters.py       # step-by-step wizard (Save & Next)
-    3_📊_Analysis_I.py
-    4_🔥_Analysis_II.py
-    5_📡_RT-tool.py
-    6_🧪_Chemical_Analysis.py     # reads <prefix>.chemanalysis.fin
+    3_📡_Line_emission.py          # runs RT-tool: line tables, Tr/τ build-up, CO SLED
+    4_📊_Abundances_Profiles.py    # abundance/Tgas profiles + custom-plot tab
+    5_🔥_Heating_and_Cooling.py    # heating/cooling/emissivities/level pops + custom-plot tab
+    6_🧪_Chemical_Analysis.py      # reads <prefix>.chemanalysis.fin
     7_🧬_Network_Builder.py
     8_🐞_Report_a_bug.py
   pdrstudio/              # backend (one module per concern)
-    paths.py    # locate the 3D-PDR tree
-    config.py   # discover/read/write src/config.mk (+ makefile-aware flag schema)
-    network.py  # resolve species_<suffix>.d / rates_<suffix>.d (X-ray aware)
-    networkbuilder.py  # build a new network via MakeRates + import it
-    runner.py   # compile & run, streaming logs
-    llm.py      # optional offline local-LLM backend (Ollama / llama.cpp)
-    report.py   # build debug-report tarballs
-    ui.py       # shared Streamlit helpers
+    paths.py          # locate the 3D-PDR tree
+    config.py         # discover/read/write src/config.mk (+ makefile-aware flag schema)
+    params.py         # read/write params.dat + per-network initial abundances
+    network.py        # resolve species_<suffix>.d / rates_<suffix>.d (X-ray aware)
+    networkbuilder.py # build a new network via MakeRates + import it
+    chem.py           # browse/edit the reaction network (chemfiles/rates_*.d)
+    chemanalysis.py   # read <prefix>.chemanalysis.fin (formation/destruction pathways)
+    runner.py         # compile & run, streaming logs
+    rttool.py         # drive & read the RT-tool post-processor
+    outputs.py        # load <prefix>.pdr.fin model outputs
+    fortread.py       # robust parsing of Fortran E/ES-format ASCII tables
+    llm.py            # optional offline local-LLM backend (Ollama / llama.cpp)
+    report.py         # build debug-report tarballs
+    ui.py             # shared Streamlit helpers
   makerates/    # embedded MakeRates (MakeRates.py), run headless
   requirements.txt
   run.sh
+  run-lan.sh
 ```
 
 PDR-studio finds the 3D-PDR root as its own parent directory. Override with the
@@ -53,12 +67,13 @@ PDR-studio finds the 3D-PDR root as its own parent directory. Override with the
 
 | Feature | Status |
 |---|---|
-| 🏠 Home | ✅ |
+| 🏠 Home (detects whether 3D-PDR is built, current `config.mk` build, quick links) | ✅ |
+| 📖 Tutorial (hands-on in-app walkthrough, follows the sidebar top to bottom) | ✅ |
 | ⚙️ Code Configuration (edit `config.mk`, **Save & Compile**, Next → Model Parameters) | ✅ |
-| 📐 Model Parameters (step wizard: `params.dat` → abundances+dust/gas → network → run → Analysis I) | ✅ |
-| 📊 Analysis I (2×2 log-log vs A_V / N_tot / n_H; + a Python custom-plot tab) | ✅ |
-| 🔥 Analysis II (heating, cooling, emissivities, level populations; + a custom-plot tab) | ✅ |
-| 📡 RT-tool (run RTtool; line tables, Tr & τ build-up, CO SLED + custom-plot tab) | ✅ |
+| 📐 Model Parameters (step wizard: `params.dat` → abundances+dust/gas → network → run → analysis) | ✅ |
+| 📡 Line emission (runs RT-tool; line tables, Tr & τ build-up, CO SLED + custom-plot tab) | ✅ |
+| 📊 Abundance Profiles (2×2 log-log vs A_V / n_H; + a Python custom-plot tab) | ✅ |
+| 🔥 Heating & Cooling (heating, cooling, emissivities, level populations; + a custom-plot tab) | ✅ |
 | 🧪 Chemical Analysis (per-species formation/destruction pathways, hover-linked to depth; optional local-LLM summary) | ✅ |
 | 🧬 Network Builder (build a new network with MakeRates from selected elements, import it into 3D-PDR) | ✅ |
 | 🐞 Report a bug (bundle config/params/ICs/outputs into a tarball to email the 3D-PDR team) | ✅ |
@@ -134,9 +149,13 @@ headless copy of **MakeRates** (`makerates/MakeRates.py`) and imports it into th
 3. **Import** copies species/rates → `chemfiles/`, odes → `src/`, and wires
    `NETWORK = <NAME>` into `config.mk`, the `makefile`, and the suffix `#ifdef`
    blocks of `read_species.F90` / `read_rates.F90` / `input_parameters.F90`
-   (idempotent). Chemical heating needs no edit thanks to `AUTOCHEMHEAT`, so
-   `heatingfunctions.F90` is untouched. Recompile to use the new network; its
-   elements then appear in the Model Parameters → Initial abundances tab.
+   (idempotent). Chemical heating needs no per-network edit: `CHEMICAL_HEATING`
+   in `heatingfunctions.F90` calls the network-independent
+   `chemical_heating_module` (`src/chemical_heating.F90`), which tags the
+   relevant exothermic reactions automatically by matching reactants/products
+   against a canonical table — so it is untouched. Recompile to use the new
+   network; its elements then appear in the Model Parameters → Initial
+   abundances tab.
 
 > The ODEs are emitted as C (`odes_<NAME>.c`) because 3D-PDR compiles them via
 > the makefile's `%.o: %.c` rule (the proposal's `.d` would not compile).
