@@ -61,7 +61,7 @@ MODULE maincode_module
   logical::SPH
 #ifdef RESTART
   logical :: restart
-  character(len=100) :: restart_file
+  character(len=100) :: restart_file_A, restart_file_B
 #endif
   character(len=1) :: crfieldchoice
   real(kind=dp) :: crattennorm, crattenslope, crattenn0

@@ -24,8 +24,13 @@ call read_command_line
 call readparams
 
 #if defined RESTART && defined THERMALBALANCE
-restart_file = trim(adjustl(output))//"_restart.bin"
-inquire(file=restart_file, exist=restart)
+restart_file_A = trim(adjustl(output))//"_restart_A.bin"
+restart_file_B = trim(adjustl(output))//"_restart_B.bin"
+! _restart_B.bin is rewritten on every checkpoint (it holds the still-active
+! points), so its presence alone signals a usable checkpoint pair; see
+! restart_io.F90 for why _restart_A.bin (the append-only converged-cell
+! file) may legitimately not exist yet on an early checkpoint.
+inquire(file=restart_file_B, exist=restart)
 if (restart) then
   write(6,*) ' '
   write(6,*) ' *****************'
@@ -260,8 +265,8 @@ DO ITERATION=1,ITERTOT
              levpop_iteration=0
 #ifdef THERMALBALANCE
 #ifdef RESTART
-             out_file2 = trim(adjustl(restart_file))//"]"
-             write(6,'(" Writing file [",A)') trim(adjustl(out_file2))
+             write(6,'(" Writing checkpoint [",A,"] + [",A,"]")') &
+                  & trim(adjustl(restart_file_A)), trim(adjustl(restart_file_B))
              call save_restart
 #endif
              write(6,*) 'Enabling thermal balance routine in next iteration'

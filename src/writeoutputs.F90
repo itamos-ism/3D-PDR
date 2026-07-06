@@ -82,10 +82,10 @@ close(98)
 
   do p=1,pdr_ptot
 #ifdef ONEDIMENSIONAL
-     write(21,'(I7,4ES15.7,I5,300ES15.7)') p,pdr(p)%x, pdr(p)%AV(6), pdr(p)%Tgas,pdr(p)%Tdust,pdr(p)%etype,&
+     write(21,'(I10,4ES15.7,I5,300ES15.7)') p,pdr(p)%x, pdr(p)%AV(6), pdr(p)%Tgas,pdr(p)%Tdust,pdr(p)%etype,&
      &pdr(p)%rho,pdr(p)%UVfield,pdr(p)%abundance
 #else
-     write(21,'(I7,5ES15.7,I5,300ES15.7)') p,pdr(p)%x, pdr(p)%y, pdr(p)%z, pdr(p)%Tgas,pdr(p)%Tdust,&
+     write(21,'(I10,5ES15.7,I5,300ES15.7)') p,pdr(p)%x, pdr(p)%y, pdr(p)%z, pdr(p)%Tgas,pdr(p)%Tdust,&
      &pdr(p)%etype,pdr(p)%rho,pdr(p)%UVfield,pdr(p)%abundance!,pdr(p)%AV
 #endif
   enddo
@@ -156,10 +156,10 @@ close(21)
 
    do p=1,pdr_ptot
 #ifdef ONEDIMENSIONAL
-      write(13,'(I7,200ES15.7)') p, pdr(p)%x, pdr(p)%AV(6), pdr(p)%cooling(:),pdr(p)%totalcooling
+      write(13,'(I10,200ES15.7)') p, pdr(p)%x, pdr(p)%AV(6), pdr(p)%cooling(:),pdr(p)%totalcooling
      
 #else
-      write(13,'(I7,200ES15.7)') p, pdr(p)%x, pdr(p)%y, pdr(p)%z, pdr(p)%cooling(:),pdr(p)%totalcooling!, pdr(p)%AV(:)
+      write(13,'(I10,200ES15.7)') p, pdr(p)%x, pdr(p)%y, pdr(p)%z, pdr(p)%cooling(:),pdr(p)%totalcooling!, pdr(p)%AV(:)
 #endif
    enddo
 !-------------------------------
@@ -178,9 +178,9 @@ close(21)
 
    do p=1,pdr_ptot
 #ifdef ONEDIMENSIONAL
-      write(14,'(I7,200ES15.7)') p, pdr(p)%x, pdr(p)%AV(6), pdr(p)%heating
+      write(14,'(I10,200ES15.7)') p, pdr(p)%x, pdr(p)%AV(6), pdr(p)%heating
 #else
-      write(14,'(I7,200ES15.7)') p, pdr(p)%x, pdr(p)%y, pdr(p)%z, pdr(p)%heating!, pdr(p)%AV
+      write(14,'(I10,200ES15.7)') p, pdr(p)%x, pdr(p)%y, pdr(p)%z, pdr(p)%heating!, pdr(p)%AV
 #endif
    enddo
    close(14)
