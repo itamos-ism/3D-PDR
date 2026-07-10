@@ -480,6 +480,7 @@
            ALPHA_G = 1e-14*C0/(1.0 + C1 * PSI**C2 + C1 * PSI**(C2-C5-C6*log(TEMPERATURE)) * C3 * TEMPERATURE**C4)
            RATE(I) = RATE(I) + ALPHA_G * density/nelectron_grc
          ENDIF
+
          IF (REACTANT(I,1).EQ."He+" .AND. REACTANT(I,2).EQ."e- ") THEN
            C0=5.572;C1=3.185E-7;C2=1.512;C3=5.115E3;C4=3.903E-7;C5=0.4956;C6=5.494E-7
            PSI = 0.0D0
@@ -490,6 +491,7 @@
            ALPHA_G = 1e-14*C0/(1.0 + C1 * PSI**C2 + C1 * PSI**(C2-C5-C6*log(TEMPERATURE)) * C3 * TEMPERATURE**C4)
            RATE(I) = RATE(I) + ALPHA_G * density/nelectron_grc
         ENDIF
+
         IF (REACTANT(I,1).EQ."C+ " .AND. REACTANT(I,2).EQ."e- ") THEN
            C0=45.58;C1=6.089E-3;C2=1.128;C3=4.331E2;C4=4.845E-2;C5=0.8120;C6=1.333E-4
          PSI = 0.0D0
@@ -500,6 +502,29 @@
          ALPHA_G = 1e-14*C0/(1.0 + C1 * PSI**C2 + C1 * PSI**(C2-C5-C6*log(TEMPERATURE)) * C3 * TEMPERATURE**C4)
          RATE(I) = RATE(I) + ALPHA_G * density/nelectron_grc
         ENDIF
+
+        IF (REACTANT(I,1).EQ."Mg+" .AND. REACTANT(I,2).EQ."e- ") THEN
+           C0=2.510;C1=8.116E-08;C2=1.864;C3=6.170E4;C4=2.169E-06;C5=0.9605;C6=7.232E-05
+         PSI = 0.0D0
+         DO K=0,NRAYS-1
+                !PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(1.8D0*AV(K)))*SQRT(TEMPERATURE)/nelectron
+                PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(2.63D0*AV(K)))*SQRT(TEMPERATURE)/nelectron_grc
+         ENDDO
+         ALPHA_G = 1e-14*C0/(1.0 + C1 * PSI**C2 + C1 * PSI**(C2-C5-C6*log(TEMPERATURE)) * C3 * TEMPERATURE**C4)
+         RATE(I) = RATE(I) + ALPHA_G * density/nelectron_grc
+        ENDIF
+
+        IF (REACTANT(I,1).EQ."S+ " .AND. REACTANT(I,2).EQ."e- ") THEN
+           C0=3.064;C1=7.769E-05;C2=1.319;C3=1.087E2;C4=3.475E-01;C5=0.4790;C6=4.689E-02
+         PSI = 0.0D0
+         DO K=0,NRAYS-1
+                !PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(1.8D0*AV(K)))*SQRT(TEMPERATURE)/nelectron
+                PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(2.63D0*AV(K)))*SQRT(TEMPERATURE)/nelectron_grc
+         ENDDO
+         ALPHA_G = 1e-14*C0/(1.0 + C1 * PSI**C2 + C1 * PSI**(C2-C5-C6*log(TEMPERATURE)) * C3 * TEMPERATURE**C4)
+         RATE(I) = RATE(I) + ALPHA_G * density/nelectron_grc
+        ENDIF
+
 #endif
         IF(RATE(I).LT.0.0D0) THEN
            PRINT *,'ERROR! Negative rate for reaction',I
