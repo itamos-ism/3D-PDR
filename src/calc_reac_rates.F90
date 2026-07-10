@@ -160,6 +160,10 @@
                RATE(I)=0.0D0
             ELSE
                LOCTEMPERATURE=TEMPERATURE
+!     Clamp evaluation temperature to RTMIN for negative-gamma fits 
+               IF(GAMMA(I).LT.0.0D0 .AND. TEMPERATURE.LT.RTMIN(I)) THEN
+                  LOCTEMPERATURE=RTMIN(I)
+               ENDIF
 #ifdef SUPRATHERMAL
                !Suprathermal heating following Visser+(2009). Added by TGBisbas
                !v_alfv has been converted to K in input_parameters.F90 following Eqn~6 Visser+(2009)
@@ -185,6 +189,9 @@
                     RATE(J)=0.0D0
                   ELSE
                     LOCTEMPERATURE=TEMPERATURE
+                    IF(GAMMA(J).LT.0.0D0 .AND. TEMPERATURE.LT.RTMIN(J)) THEN
+                       LOCTEMPERATURE=RTMIN(J)
+                    ENDIF
 #ifdef SUPRATHERMAL
                     isition1=adjustr(reactant(i,1))
                     isition2=adjustr(reactant(i,2))
@@ -205,6 +212,9 @@
                     RATE(J)=0.0D0
                   ELSE
                     LOCTEMPERATURE=TEMPERATURE
+                    IF(GAMMA(J).LT.0.0D0 .AND. TEMPERATURE.LT.RTMIN(J)) THEN
+                       LOCTEMPERATURE=RTMIN(J)
+                    ENDIF
 #ifdef SUPRATHERMAL
                     isition1=adjustr(reactant(i,1))
                     isition2=adjustr(reactant(i,2))
