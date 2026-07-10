@@ -18,6 +18,7 @@ DO p=1,pdr_ptot
   DO j=0,nrays-1
     coltest = coltest + EXP(-3.5*pdr(p)%AV(j))
   ENDDO
+  coltest = max(coltest, 1.0d-300)
   coltest = (-1.0/3.5)*LOG((1.0/real(nrays,kind=dp))*coltest)
   coltest = coltest/AV_fac
   coltest = max(coltest, 5e17)

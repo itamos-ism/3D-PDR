@@ -47,6 +47,7 @@
       real(kind=dp) :: PHI_REC
 #ifdef GRAINRECOMB
       real(kind=dp)::C0,C1,C2,C3,C4,C5,C6,PSI,ALPHA_G
+      real(kind=dp)::nelectron_grc
 #endif
       real(kind=dp) :: loctemperature
 #ifdef SUPRATHERMAL
@@ -67,6 +68,10 @@
       NRCO=0
       NRCI=0
       NRSI=0
+
+#ifdef GRAINRECOMB
+      nelectron_grc = MAX(nelectron, 1.0D-30*density)
+#endif
 
       DO I=1,NREAC
 !        Determine the type of reaction
@@ -470,30 +475,30 @@
            PSI = 0.0D0
            DO K=0,NRAYS-1
               !PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(1.8D0*AV(K)))*SQRT(TEMPERATURE)/nelectron
-              PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(2.63D0*AV(K)))*SQRT(TEMPERATURE)/nelectron
+              PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(2.63D0*AV(K)))*SQRT(TEMPERATURE)/nelectron_grc
            ENDDO
            ALPHA_G = 1e-14*C0/(1.0 + C1 * PSI**C2 + C1 * PSI**(C2-C5-C6*log(TEMPERATURE)) * C3 * TEMPERATURE**C4)
-           RATE(I) = RATE(I) + ALPHA_G * density/nelectron
+           RATE(I) = RATE(I) + ALPHA_G * density/nelectron_grc
          ENDIF
          IF (REACTANT(I,1).EQ."He+" .AND. REACTANT(I,2).EQ."e- ") THEN
            C0=5.572;C1=3.185E-7;C2=1.512;C3=5.115E3;C4=3.903E-7;C5=0.4956;C6=5.494E-7
            PSI = 0.0D0
            DO K=0,NRAYS-1
               !PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(1.8D0*AV(K)))*SQRT(TEMPERATURE)/nelectron
-              PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(2.63D0*AV(K)))*SQRT(TEMPERATURE)/nelectron
+              PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(2.63D0*AV(K)))*SQRT(TEMPERATURE)/nelectron_grc
            ENDDO
            ALPHA_G = 1e-14*C0/(1.0 + C1 * PSI**C2 + C1 * PSI**(C2-C5-C6*log(TEMPERATURE)) * C3 * TEMPERATURE**C4)
-           RATE(I) = RATE(I) + ALPHA_G * density/nelectron
+           RATE(I) = RATE(I) + ALPHA_G * density/nelectron_grc
         ENDIF
         IF (REACTANT(I,1).EQ."C+ " .AND. REACTANT(I,2).EQ."e- ") THEN
            C0=45.58;C1=6.089E-3;C2=1.128;C3=4.331E2;C4=4.845E-2;C5=0.8120;C6=1.333E-4
          PSI = 0.0D0
          DO K=0,NRAYS-1
                 !PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(1.8D0*AV(K)))*SQRT(TEMPERATURE)/nelectron
-                PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(2.63D0*AV(K)))*SQRT(TEMPERATURE)/nelectron
+                PSI = PSI + 1.68D0*RAD_SURFACE(K)*EXP(-(2.63D0*AV(K)))*SQRT(TEMPERATURE)/nelectron_grc
          ENDDO
          ALPHA_G = 1e-14*C0/(1.0 + C1 * PSI**C2 + C1 * PSI**(C2-C5-C6*log(TEMPERATURE)) * C3 * TEMPERATURE**C4)
-         RATE(I) = RATE(I) + ALPHA_G * density/nelectron
+         RATE(I) = RATE(I) + ALPHA_G * density/nelectron_grc
         ENDIF
 #endif
         IF(RATE(I).LT.0.0D0) THEN
