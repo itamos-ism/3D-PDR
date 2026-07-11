@@ -48,7 +48,7 @@
 ! fullyconverged, because every routine that would read them "cycle"s past
 ! fullyconverged points first):
 !   doleveltmin, dobinarychop, previouschange, Tlow, Thigh, Illinois
-!   Flow/Fhigh/ill_last, REBRACKET nrebracket, FREEZECOOL coolprev.
+!   Flow/Fhigh/ill_last, REBRACKET nrebracket, coolprev.
 ! coolprev in particular does not need to be reconstructed either: by the
 ! time a point stops being visited by coolingfunctions (the only place that
 ! writes coolprev), coolprev and cooling(k) already hold the same value (the
@@ -133,9 +133,7 @@ subroutine save_restart
         do k = 1, coo
            write(77) pdr(p)%coolant(k)%isconverged, pdr(p)%coolant(k)%pop
            write(77) pdr(p)%coolant(k)%line   ! output-only; converged points skip coolingfunctions
-#ifdef FREEZECOOL
            write(77) pdr(p)%coolant(k)%coolprev
-#endif
         enddo
         nBcur = nBcur + 1
      endif
@@ -242,9 +240,7 @@ subroutine load_restart
      do k = 1, coo
         read(77) pdr(p_rec)%coolant(k)%isconverged, pdr(p_rec)%coolant(k)%pop
         read(77) pdr(p_rec)%coolant(k)%line
-#ifdef FREEZECOOL
         read(77) pdr(p_rec)%coolant(k)%coolprev
-#endif
         ! Make the solver state consistent with the restored populations so the
         ! first convergence check after restart compares like with like.
         pdr(p_rec)%coolant(k)%solution = pdr(p_rec)%coolant(k)%pop
