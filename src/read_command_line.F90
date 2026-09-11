@@ -11,6 +11,7 @@ SUBROUTINE read_command_line
     character(len=50)::arg,param,val
     character :: delim
 
+    paramFile = 'params.dat'
     delim = '='
     commandLineCount = command_argument_count()
 
