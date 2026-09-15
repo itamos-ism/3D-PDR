@@ -5,7 +5,15 @@ real(kind=dp), pointer :: lm_p1(:), lm_p2(:,:), lm_p3(:,:,:)
 #endif
 
 allocate(coolant(1:coo))
+!Explicit default: coolant(:)%isotope must never be left at Fortran's default
+!derived-type initialization (effectively 0), since it is divided into in
+!coolingfunctions.F90 -- a stray 0 there is a division-by-zero that propagates
+!to Inf level populations and a singular matrix in GAUSS_JORDAN. Set the
+!default for every coolant up front, then overwrite with the parsed ratio
+!(coolratio(i), itself defaulted to 1.0D0 in readparams) below.
+coolant(:)%isotope = 1.0D0
 do i = 1,coo
+  coolant(i)%isotope = coolratio(i)
   open(unit=44,file=coolfile(i),status='old')
   read(44,'()') 
   read(44,*) coolant(i)%cname

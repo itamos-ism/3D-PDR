@@ -8,6 +8,40 @@ use m_Mesh, only: nxc, nyc, nzc, xlx, yly, zlz
 #if (defined(OUTRAYINFO) &&  !defined(ONEDIMENSIONAL))
 character(len=100) :: outFormat
 #endif
+character(len=60) :: outtag(1:30)
+character(len=50) :: basetag
+logical :: coolant_dup
+integer :: islash, idot
+
+!Build a unique output tag per coolant. Normally this is just the coolant
+!name (e.g. "CO"), matching the pre-existing filenames. But multiple coolants
+!can share the same LAMDA species name -- e.g. an isotopologue such as 13CO
+!alongside 12CO, both of which carry cname='CO' in their data files -- and
+!using cname alone would make the later coolant's .line.fin/.spop.fin files
+!silently overwrite the earlier one's. Disambiguate with the coolant's data
+!filename (stripped of path/extension) whenever cname collides.
+do k=1,coo
+  outtag(k) = trim(adjustl(coolant(k)%cname))
+enddo
+do k=1,coo
+  coolant_dup = .false.
+  do kk=1,coo
+    !Compare against the original cname, not outtag(kk): outtag is mutated
+    !in place below, so comparing against it would miss the pair once the
+    !first of the two duplicates has already been renamed.
+    if (kk.ne.k) then
+      if (trim(adjustl(coolant(kk)%cname)).eq.trim(adjustl(coolant(k)%cname))) coolant_dup = .true.
+    endif
+  enddo
+  if (coolant_dup) then
+    basetag = adjustl(coolfile(k))
+    islash = index(basetag,'/',back=.true.)
+    if (islash.gt.0) basetag = basetag(islash+1:)
+    idot = index(basetag,'.',back=.true.)
+    if (idot.gt.0) basetag = basetag(1:idot-1)
+    outtag(k) = trim(outtag(k))//'_'//trim(basetag)
+  endif
+enddo
 
 #ifdef PYWRAP
 out_file = trim(adjustl(output))//".pywrap"
@@ -194,7 +228,7 @@ close(21)
 !OUTPUT FOR EMISSIVITIES
 !-----------------------
  do k=1,coo
-   out_file = trim(adjustl(output))//"."//trim(adjustl(coolant(k)%cname))//trim(adjustl(".line"))//".fin"
+   out_file = trim(adjustl(output))//"."//trim(adjustl(outtag(k)))//trim(adjustl(".line"))//".fin"
    out_file2 = trim(adjustl(out_file))//"]"
    write(6,'(" Writing file [",A)') trim(adjustl(out_file2))
    open(unit=16,file=out_file,status='replace')
@@ -218,7 +252,7 @@ close(21)
 !OUTPUT FOR LEVEL POPULATIONS
 !----------------------------
  do k=1,coo
-   out_file = trim(adjustl(output))//"."//trim(adjustl(coolant(k)%cname))//trim(adjustl(".spop"))//".fin"
+   out_file = trim(adjustl(output))//"."//trim(adjustl(outtag(k)))//trim(adjustl(".spop"))//".fin"
    out_file2 = trim(adjustl(out_file))//"]"
    write(6,'(" Writing file [",A)') trim(adjustl(out_file2))
    open(unit=16,file=out_file,status='replace')

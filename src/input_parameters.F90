@@ -11,7 +11,7 @@ SUBROUTINE readparams
                               & chemiterations, zeta, end_time, Av_crit, v_alfv, &
                               & indir, outdir, coolfile, coo, redshift, Tcmb, crfieldchoice, &
                               & paramFile, crattennorm, crattenslope, crattenn0, UVdirchoice, &
-                              & user_UVAngle, UVdir
+                              & user_UVAngle, UVdir, coolratio
   use global_module, only : metallicity, omega, grain_radius
   use chemistry_module
   use m_Mesh
@@ -19,6 +19,8 @@ SUBROUTINE readparams
 
   real(kind=dp):: dummy
   character(len=50)::coolin,suffix
+  character(len=200)::coolline
+  integer::ios
 
 open(unit=12,file=paramFile,status='old')
 read(12,*); read(12,*); read(12,*)
@@ -92,9 +94,23 @@ Tlow0=10.0
 Thigh0=8000.0
 read(12,*); read(12,*); read(12,*)
 coo=0
+coolratio = 1.0D0   !explicit default: no isotope scaling unless a ratio is given below
 do
-  read(12,*,end=99) coolin
+  read(12,'(A)',end=99) coolline
+  if (len_trim(coolline)==0) cycle   !skip any accidental blank lines
   coo=coo+1
+  !Each coolant line is normally just a filename (e.g. "12co.dat"), optionally
+  !followed by an isotope ratio (e.g. "13co.dat 60"), with an inline "!..."
+  !comment allowed after either form. Try to read both tokens; if the second
+  !(the ratio) is absent, fall back to reading just the filename and keep the
+  !explicit 1.0D0 default set above -- coolratio(coo) must never be left at
+  !whatever value it happened to have before, since coolant(:)%isotope is
+  !divided into further downstream and a stray 0 there is a division-by-zero.
+  read(coolline,*,iostat=ios) coolin, coolratio(coo)
+  if (ios/=0) then
+    read(coolline,*) coolin
+    coolratio(coo) = 1.0D0
+  endif
   coolfile(coo) = coolin
 enddo
 99 continue

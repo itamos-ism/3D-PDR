@@ -144,6 +144,7 @@ MODULE maincode_module
   character(len=50)::paramFile
   integer(kind=i4b) :: lmax_levels = 0
   character(len=50)::coolfile(1:30)
+  real(kind=dp)::coolratio(1:30)  !optional isotope ratio parsed from each coolant's params.dat line (default 1.0D0)
   integer::coo,cur_nlev,cur_ntemp
   real(kind=dp),allocatable::temp_pop(:)
   type coolant_node
@@ -163,6 +164,7 @@ MODULE maincode_module
      character(len=10) :: cname
      integer :: incr
      real :: percentage
+     real :: isotope
   end type coolant_node
   type(coolant_node), allocatable::coolant(:)
   real(kind=dp) :: temp_Z_function

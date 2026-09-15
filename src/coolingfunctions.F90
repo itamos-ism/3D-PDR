@@ -107,7 +107,7 @@ do p=1,pdr_ptot
 #endif
 #endif
           pdr(p)%coolant(k)%line=temp_line
-          call solvlevpop(coolant(k)%cnlev,temp_transition,pdr(p)%abundance(coolant(k)%cspec)*pdr(p)%rho,&
+          call solvlevpop(coolant(k)%cnlev,temp_transition,pdr(p)%abundance(coolant(k)%cspec)*pdr(p)%rho/coolant(k)%isotope,&
                   temp_solution)
           pdr(p)%coolant(k)%solution=temp_solution
           deallocate(temp_C_COEFFS)
