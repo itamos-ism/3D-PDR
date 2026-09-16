@@ -42,6 +42,7 @@
       real(kind=dp), intent(in) :: ZETALOCAL
       real(kind=dp) :: PHI_PAH,CION,STICKING,FLUX,YIELD
       INTEGER(kind=i4b) :: I,J,K
+      real(kind=dp)::OPR_H2,F_ORTHO,F_PARA
 !BALG
       real(kind=dp),intent(in) :: nelectron,density
       real(kind=dp) :: PHI_REC
@@ -108,6 +109,27 @@
             RATE(I)=3.0D-18*SQRT(TEMPERATURE)
 #endif
             NRGR=I
+            GOTO 10
+         ENDIF
+
+!     N+ + H2 -> NH+ + H : ortho/para-H2 dependent rate of Dislaire et al.
+!     (2012, A&A 537, A20). The endothermic para-H2 channel (barrier 168.5 K)
+!     and the near-thermoneutral ortho-H2 channel (barrier 44.5 K, the J=1
+!     internal energy lowers the effective barrier) are weighted by the local
+!     H2 ortho/para populations. 3D-PDR does not evolve the H2 ortho/para
+!     ratio, so it is taken at LTE for the local gas temperature:
+!        opr = 9*exp(-170.5/T)   (statistical weight 3 x rotational 3 = 9)
+!     This overrides the single-barrier rate in the network file for this
+!     reaction. Because k_ortho >> k_para in cold gas, the effective rate is
+!     very sensitive to the ortho fraction (recommended).
+         IF( ((REACTANT(I,1).EQ."N+ " .AND. REACTANT(I,2).EQ."H2 ") .OR.  &
+          &   (REACTANT(I,1).EQ."H2 " .AND. REACTANT(I,2).EQ."N+ ")) .AND. &
+          &  (PRODUCT(I,1).EQ."NH+" .OR. PRODUCT(I,2).EQ."NH+")) THEN
+            OPR_H2  = 9.0D0*EXP(-170.5D0/TEMPERATURE)
+            F_ORTHO = OPR_H2/(1.0D0+OPR_H2)
+            F_PARA  = 1.0D0-F_ORTHO
+            RATE(I) = F_PARA *8.35D-10*EXP(-168.5D0/TEMPERATURE)                     &
+                    + F_ORTHO*4.20D-10*EXP(-44.5D0/TEMPERATURE)*(TEMPERATURE/300.0D0)**(-0.17D0)
             GOTO 10
          ENDIF
 
