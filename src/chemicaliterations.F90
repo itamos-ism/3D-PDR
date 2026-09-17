@@ -38,12 +38,16 @@ if (ichem.eq.CHEMITERATIONS) then
 !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(p,i,temp_Z_function) 
 #endif
    do p=1,pdr_ptot
+#ifdef THERMALBALANCE
+      if (iw.eq.2.and.pdr(p)%fullyconverged) cycle
+#endif
       do i=1,coo
          call calculate_partition_function(temp_Z_function,coolant(i)%cnlev,&
             coolant(i)%energies,coolant(i)%weights,pdr(p)%nTgas)
          call calculate_lte_populations(coolant(i)%cnlev,pdr(p)%coolant(i)%pop,coolant(i)%energies,&
             coolant(i)%weights,temp_Z_function,pdr(p)%abundance(coolant(i)%cspec)*pdr(p)%rho,&
             pdr(p)%nTgas)
+         if (iw.eq.1) pdr(p)%coolant(i)%solution = pdr(p)%coolant(i)%pop
       enddo
    enddo
 #ifdef OPENMP

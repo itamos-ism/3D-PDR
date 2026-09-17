@@ -251,3 +251,4 @@ chemical_heating.o : healpix_types.o definitions.o
 modules.o : definitions.o healpix_types.o
 heatingfunctions.o : chemical_heating.o
 3DPDR.o : chemical_heating.o
+3DPDR.o : restart_io.o

@@ -4,7 +4,18 @@ use maincode_module
 do p=1,pdr_ptot
   allocate(pdr(p)%abundance(1:nspec))
   pdr(p)%abundance = init_abundance
+  pdr(p)%levelconverged = .false.
+  pdr(p)%previouschange = 'N'
+  pdr(p)%totalcooling = 0.0D0
+  allocate(pdr(p)%cooling(coo), pdr(p)%heating(12))
+  pdr(p)%cooling = 0.0D0
+  pdr(p)%heating = 0.0D0
 #ifdef THERMALBALANCE
+  ! The first column calculation precedes the density-based freeze below.
+  pdr(p)%fullyconverged = .false.
+  pdr(p)%doleveltmin = .false.
+  pdr(p)%Fmean = 0.0D0
+  pdr(p)%Fratio = 0.0D0
   pdr(p)%dobinarychop = .false.
 #ifdef ILLINOIS
   pdr(p)%ill_last = "N"
@@ -33,6 +44,11 @@ do p=1,pdr_ptot
     allocate(pdr(p)%coolant(i)%line(coolant(i)%cnlev,coolant(i)%cnlev))
     allocate(pdr(p)%coolant(i)%solution(coolant(i)%cnlev))
     allocate(pdr(p)%coolant(i)%relativechange(coolant(i)%cnlev))
+    pdr(p)%coolant(i)%pop = 0.0D0
+    pdr(p)%coolant(i)%solution = 0.0D0
+    pdr(p)%coolant(i)%line = 0.0D0
+    pdr(p)%coolant(i)%relativechange = 0.0D0
+    pdr(p)%coolant(i)%isconverged = .false.
 #ifdef NGACCEL
     allocate(pdr(p)%coolant(i)%pophist(coolant(i)%cnlev,3))
     pdr(p)%coolant(i)%pophist = 0.0D0

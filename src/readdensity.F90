@@ -30,6 +30,10 @@ do
 enddo
 100 continue
 rewind(2)
+#ifndef ONEDIMENSIONAL
+! Counting consumed the two grid header lines; skip them again after rewind.
+read(2,'(/)')
+#endif
 #endif
 allocate(pdr(1:pdr_ptot))
 do p=1,pdr_ptot

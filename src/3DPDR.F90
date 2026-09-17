@@ -12,13 +12,19 @@ use omp_lib
 use chemistry_module
 use maincode_local
 use chemical_heating_module, only : init_chemical_heating
+use restart_checkpoint, only : checkpoint_setup, checkpoint_load, checkpoint_save, &
+     checkpoint_finished
 !use m_IOAndVisu
 
 !call logo
 
 real(kind=dp)::thfpix, phfpix
-logical :: resume_step = .false.   ! first iteration after a RESTART resume
 logical :: chemstep                ! this iteration runs the chemistry/thermal-balance step
+logical :: checkpoint_pending
+integer :: first_iteration
+#ifdef THERMALBALANCE
+logical, allocatable :: frozen_before(:)
+#endif
 
 call read_command_line
 call readparams
@@ -26,11 +32,7 @@ call readparams
 #if defined RESTART && defined THERMALBALANCE
 restart_file_A = trim(adjustl(output))//"_restart_A.bin"
 restart_file_B = trim(adjustl(output))//"_restart_B.bin"
-! _restart_B.bin is rewritten on every checkpoint (it holds the still-active
-! points), so its presence alone signals a usable checkpoint pair; see
-! restart_io.F90 for why _restart_A.bin (the append-only converged-cell
-! file) may legitimately not exist yet on an early checkpoint.
-inquire(file=restart_file_B, exist=restart)
+call checkpoint_setup
 if (restart) then
   write(6,*) ' '
   write(6,*) ' *****************'
@@ -160,22 +162,25 @@ do p=1,pdr_ptot
 #endif
   pdr(p)%doleveltmin    = .false.
 #endif
-  allocate(pdr(p)%cooling(coo))
-  allocate(pdr(p)%heating(12))
 enddo
 
+first_iteration=1
+thermal_percentage=0
+levpop_percentage=0
+levpop_iteration=0
+#ifdef NGACCEL
+ng_nhist=0
+#endif
+coolant(:)%percentage=0
+#ifdef THERMALBALANCE
+allocate(frozen_before(pdr_ptot))
+#endif
 #if defined RESTART && defined THERMALBALANCE
-if (restart) call load_restart   ! validates the file; clears 'restart' on mismatch
 if (restart) then
-  ! The checkpoint was written at a "level populations converged" step that was
-  ! about to run thermal balance. Resume in exactly that state: restored gas
-  ! temperatures, abundances, level populations, cooling and bracket - so the
-  ! level populations are NOT re-converged from LTE.
-  call calc_columndens          ! column densities depend on the restored abundances
-  level_conv = .true.
-  first_time = .false.
-  resume_step = .true.          ! make the first iteration a thermal-balance step (as right after a checkpoint)
-  write(6,*) ' [RESTART] resumed from saved level populations and temperatures'
+  call checkpoint_load
+  if (checkpoint_finished) goto 2
+  first_iteration=iteration+1
+  write(6,*) ' [RESTART] continuing at iteration ',first_iteration
 else
   call chemicaliterations(1,CHEMITERATIONS)
 endif
@@ -190,15 +195,11 @@ write(6,*) '----------------'
 write(6,*) 'Iterations begin'
 write(6,*) '----------------'
 
-levpop_iteration=0
-#ifdef NGACCEL
-ng_nhist=0
+DO ITERATION=first_iteration,ITERTOT
+        checkpoint_pending=.false.
+#ifdef THERMALBALANCE
+        frozen_before=pdr(:)%fullyconverged
 #endif
-do k=1,coo
-  coolant(k)%percentage=0
-enddo
-  
-DO ITERATION=1,ITERTOT
         write_output=.false.
         write(6,*) ''
         write(6,'(" Iteration = ",I4)') iteration
@@ -207,7 +208,7 @@ DO ITERATION=1,ITERTOT
         write(6,'(" Level population iteration = ",I3)') levpop_iteration
 
         !LTE/LVG computations
-        chemstep = ((iteration.gt.1).or.resume_step).and.(levpop_iteration.eq.1)
+        chemstep = (iteration.gt.1).and.(levpop_iteration.eq.1)
         IF (chemstep) THEN
                call chemicaliterations(2,3)
 #ifdef NGACCEL
@@ -222,7 +223,6 @@ DO ITERATION=1,ITERTOT
         IF (chemstep) THEN
                call updatelte
         ENDIF
-        resume_step = .false.
 #ifdef THERMALBALANCE
         if (level_conv.and.first_time) first_time=.false.
         i=0
@@ -243,9 +243,7 @@ DO ITERATION=1,ITERTOT
         if (i.eq.pdr_ptot) then
              write(6,*) '#### Converged through thermal balance ####'
 #ifdef RESTART
-             ! Checkpoint the final fully-converged state so that restarting a
-             ! finished model is recognised as converged in a single iteration.
-             call save_restart
+             call checkpoint_save(.true.)
 #endif
              goto 2
         endif
@@ -253,6 +251,9 @@ DO ITERATION=1,ITERTOT
 
         RELCH_conv=.true.
         do p=1,pdr_ptot
+#ifdef THERMALBALANCE
+          if (pdr(p)%fullyconverged) cycle
+#endif
           pdr(p)%levelconverged = .false.
         enddo
         
@@ -264,11 +265,7 @@ DO ITERATION=1,ITERTOT
              write(6,*) '#### Converged through level populations ####'
              levpop_iteration=0
 #ifdef THERMALBALANCE
-#ifdef RESTART
-             write(6,'(" Writing checkpoint [",A,"] + [",A,"]")') &
-                  & trim(adjustl(restart_file_A)), trim(adjustl(restart_file_B))
-             call save_restart
-#endif
+             checkpoint_pending=.true.
              write(6,*) 'Enabling thermal balance routine in next iteration'
              level_conv=.true.
              goto 1
@@ -301,6 +298,7 @@ DO ITERATION=1,ITERTOT
 #ifdef THERMALBALANCE
         if (int(levpop_percentage,kind=i4b).ge.100) then
            do p=1,pdr_ptot
+             if (pdr(p)%fullyconverged) cycle
              pdr(p)%levelconverged = .false.
            enddo
            write(6,*) 'Resetting [level_converged=.false.] array'
@@ -324,9 +322,14 @@ DO ITERATION=1,ITERTOT
 #endif
 #endif
 #ifdef OPENMP
-!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(p,ilevel)
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(p,ilevel,k)
 #endif
        do p=1,pdr_ptot
+#ifdef THERMALBALANCE
+         ! Newly converged cells finish this update once; previously frozen
+         ! cells retain their initial LTE/final populations and Ng history.
+         if (frozen_before(p)) cycle
+#endif
          do k=1,coo
 #ifdef NGACCEL
 #ifdef NGRELAX
@@ -400,6 +403,9 @@ DO ITERATION=1,ITERTOT
 #endif
 #endif
 
+#if defined RESTART && defined THERMALBALANCE
+       if (checkpoint_pending) call checkpoint_save(.false.)
+#endif
 END DO !ITERATIONS
 
 2  continue

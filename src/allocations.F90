@@ -28,10 +28,10 @@ allocate(rtmax(1:nreac))
 allocate(duplicate(1:nreac))
 #ifdef CHEMANALYSIS
 allocate(temp_rate(1:nreac,1:pdr_ptot))
+temp_rate = 0.0D0
 #endif
 
 
 return
 end subroutine allocations
-
 

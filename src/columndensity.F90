@@ -35,13 +35,7 @@ do p=1,pdr_ptot
 #else
    pdr(p)%projected(:,0) = p
 #endif
-  if (referee.eq.0) then 
-      allocate(pdr(p)%column_NH2(0:nrays-1))
-      allocate(pdr(p)%column_NHD(0:nrays-1))
-      allocate(pdr(p)%column_NCO(0:nrays-1))
-      allocate(pdr(p)%column_NC(0:nrays-1))
-      allocate(pdr(p)%column_NS(0:nrays-1))
-  endif
+  ! Column arrays are allocated once in initialization.
   pdr(p)%column_NH2 = 0.0D0
   pdr(p)%column_NHD = 0.0D0
   pdr(p)%column_NCO = 0.0D0
@@ -125,4 +119,3 @@ enddo ! End of ii loop over pdr (ii)
 #endif
 return
 end subroutine calc_columndens
-

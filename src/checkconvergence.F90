@@ -7,6 +7,14 @@ use global_module
 !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(p,ilevel,k,RELCH) REDUCTION(.and. : RELCH_conv)
 #endif 
 do p=1,pdr_ptot
+#ifdef THERMALBALANCE
+   ! Frozen cells are passive ray material, not population-search unknowns.
+   if (pdr(p)%fullyconverged) then
+      pdr(p)%levelconverged = .true.
+      pdr(p)%coolant(:)%isconverged = .true.
+      cycle
+   endif
+#endif
    pdr(p)%coolant(:)%isconverged=.true.
    do k=1,coo
       DO ilevel=1,coolant(k)%cnlev
