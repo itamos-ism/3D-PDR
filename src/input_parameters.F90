@@ -11,7 +11,7 @@ SUBROUTINE readparams
                               & chemiterations, zeta, end_time, Av_crit, v_alfv, &
                               & indir, outdir, coolfile, coo, redshift, Tcmb, crfieldchoice, &
                               & paramFile, crattennorm, crattenslope, crattenn0, UVdirchoice, &
-                              & user_UVAngle, UVdir, coolratio
+                              & user_UVAngle, UVdir, coolratio, minrho
   use global_module, only : metallicity, omega, grain_radius
   use chemistry_module
   use m_Mesh
@@ -73,6 +73,7 @@ Tcmb = 2.725*(1.+redshift)
 read(12,*) Av_crit
 read(12,*) v_alfv
 v_alfv = (v_alfv**2) * 40.382518!K --> protonmass * (1 km/s)^2 / 3 / k_boltzmann
+read(12,*) minrho
 read(12,*); read(12,*); read(12,*)
 read(12,*) level
 read(12,*) theta_crit

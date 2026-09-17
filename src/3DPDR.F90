@@ -158,7 +158,7 @@ do p=1,pdr_ptot
 #ifdef THERMALBALANCE
   pdr(p)%fullyconverged = .false.
 #ifndef ONEDIMENSIONAL
-  if (pdr(p)%rho<1.0) pdr(p)%fullyconverged = .true.
+  if (pdr(p)%rho<minrho) pdr(p)%fullyconverged = .true.
 #endif
   pdr(p)%doleveltmin    = .false.
 #endif

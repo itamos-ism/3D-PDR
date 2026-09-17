@@ -102,6 +102,7 @@ MODULE maincode_module
   real(kind=dp) :: Tdiff
   real(kind=dp) :: dust_temperature
   real(kind=dp) :: avmax
+  real(kind=dp) :: minrho
 
 !  character(len=3) :: fieldchoice
   real(kind=dp) :: Gext(1:3)

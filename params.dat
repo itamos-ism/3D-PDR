@@ -19,6 +19,7 @@ PDR parameters	           |
 0                          !Redshift (for CMB temperature)
 0.7                        !Av critical (SUPRATHERMAL switch)
 3.3                        !Alfven velocity (km/s) (SUPRATHERMAl switch)
+1			   !minimum PDR density considered
 ===========================|
 Ray-tracing parameters     |
 ===========================|
