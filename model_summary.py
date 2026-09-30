@@ -190,7 +190,7 @@ def main():
             print('CR ionization    : %.4g s^-1 (zeta)' % p['zeta'])
         else:
             print('CR ionization    : %s' % p['cr'])
-        print('Dust-to-gas      : %.4g  (x Galactic; also scales A_V/N_H)' % p['dtg'])
+        print('Dust-to-gas      : %.4g  (x Solar; also scales A_V/N_H)' % p['dtg'])
         print('v_turb           : %.4g km/s' % p['vturb'])
     if p:
         print('Resolution       : %d x %d x %d cells%s' % (p['res'] + (('  (1D/no grid)' if p['res'][0] == 0 else ''),)))
