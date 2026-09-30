@@ -111,3 +111,19 @@ The estimate is derived directly from the Fortran source (`initialization.F90`, 
 - It auto-detects (and can be overridden) whether the `cooling(:)`/`heating(:)` allocation in `3DPDR.F90` uses the fixed, single correctly-sized `allocate` per cell, or the older per-index loop, which affects real memory usage.
 - Expect the reported total to be within a few percent of observed usage; the remainder is typically OS/allocator overhead (heap alignment, malloc bookkeeping across the many small per-cell allocations) that isn't practical to model exactly, plus MPI buffers, Fortran runtime overhead, and CVODE solver workspace, none of which are included.
 
+
+## Model summary
+
+`model_summary.py` (in the repository root, next to `params.dat`) prints a quick summary of a finished model: the input parameters and the elemental abundances actually used. Run it from the repository root and give it the output prefix of the model, including the `sims/` directory:
+
+```console
+$ python3 model_summary.py sims/PREFIX
+```
+
+It reads `PREFIX.species`, `PREFIX.params` and a single cell of the abundance output. `PREFIX.pdr.h5` is used if it exists (requires `h5py`), otherwise `PREFIX.pdr.fin`. Only one cell is read, so it is fast even for large 3D grids. It reports:
+
+- the FUV field (G0, Draine units), the cosmic-ray ionization rate (or the attenuated CR model `L`/`H`/`U`), the dust-to-gas ratio and the microturbulent velocity;
+- the grid resolution and the box size;
+- the total abundance of each element (H, He, C, N, O, S, Mg, …) relative to hydrogen, obtained by summing all species that contain it, split into gas and ice, with the main carriers.
+
+Options: `--cell N` selects the cell (1-based line of `.pdr.fin`, default 1) and `--top K` the number of main carriers listed per element (default 3). Only Python 3 and `numpy` are required.
