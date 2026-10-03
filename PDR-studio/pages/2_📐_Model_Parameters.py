@@ -30,6 +30,7 @@ cfg = config.read_config() if paths.config_mk().exists() else {}
 network = cfg.get("NETWORK", "REDUCED")
 net_suffix = netmod.suffix_for(network, netmod.xrays_enabled(cfg))
 cratten = int(cfg.get("CRATTENUATION", "0") or 0)
+mrndust = cfg.get("MRNDUST", "0").strip() == "1"
 suprathermal = cfg.get("SUPRATHERMAL", "0").strip() == "1"
 thermalbalance = cfg.get("THERMALBALANCE", "1").strip() == "1"
 dust_flag = cfg.get("DUST", "HTT91").strip()
@@ -197,7 +198,10 @@ if section == S_PARAMS:
         c1, c2 = st.columns(2)
         with c1:
             tend_str = st.text_input("Chemical evolution time (yr)", value=_fmt("tend", cur["tend"]))
-            grain_str = st.text_input("Grain radius (cm)", value=_fmt("grain_radius", cur["grain_radius"]))
+            grain_str = st.text_input("Grain radius (cm)", value=_fmt("grain_radius", cur["grain_radius"]),
+                                      help=("MRNDUST=1: the MRN size distribution replaces this single grain in "
+                                            "GRAINRECOMB=2, H2 formation (CT02) and gas-grain heating."
+                                            if mrndust else None))
         with c2:
             avfac_str = st.text_input("N(H)→Av conversion (mag cm²)", value=_fmt("av_fac", cur["av_fac"]))
             uvfac_str = st.text_input("UV factor", value=_fmt("uv_fac", cur["uv_fac"]))

@@ -94,6 +94,8 @@ with st.expander("⚙️ Advanced flags (change only if you know what you are do
         for i, flag in enumerate(flags):
             new_values[flag.key] = _render_flag(flag, current, cols[i % 2])
         st.markdown("")
+    for hint in config.dependency_hints({**current, **new_values}):
+        st.info(hint, icon="🔗")
 
 with st.expander("View raw config.mk"):
     st.code(cfg_path.read_text(), language="makefile")
@@ -111,7 +113,7 @@ if save_compile:
     config.write_config(merged)
     with status_slot:
         st.success("config.mk saved.")
-        for note in notes:
+        for note in notes + config.dependency_hints(merged):
             st.info(note, icon="🔗")
         log_lines: list[str] = []
         exit_code: int | None = None

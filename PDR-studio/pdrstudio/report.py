@@ -14,7 +14,7 @@ import tarfile
 from io import BytesIO
 from pathlib import Path
 
-from . import paths
+from . import config, paths
 
 # Small, always-relevant inputs (relative to root) captured in every report.
 _CORE_FILES = [
@@ -26,6 +26,16 @@ _CORE_FILES = [
 _CORE_DIRS = ["chemfiles", "ics"]
 
 
+def _flag_lines() -> list[str]:
+    """Compile flags from config.mk; the grain flags are always listed (older
+    trees without MRNDUST count as 0)."""
+    p = paths.config_mk()
+    cfg = config.read_config(p) if p.exists() else {}
+    keys = ["NETWORK", "H2FORM", "GRAINRECOMB", "MRNDUST"]
+    return ["compile flags:"] + [f"  {k} = {cfg.get(k, '0' if k == 'MRNDUST' else '(unset)')}"
+                                  for k in keys]
+
+
 def _manifest(note: str, model_prefix: str | None) -> str:
     now = _dt.datetime.now().isoformat(timespec="seconds")
     lines = [
@@ -35,6 +45,8 @@ def _manifest(note: str, model_prefix: str | None) -> str:
         f"python: {platform.python_version()}",
         f"root: {paths.pdr_root()}",
         f"model_prefix: {model_prefix or '(none)'}",
+        "",
+        *_flag_lines(),
         "",
         "user note:",
         note.strip() or "(none provided)",

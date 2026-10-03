@@ -36,6 +36,7 @@ with col3:
     dims = cfg.get("DIMENSIONS", "—")
     st.metric("Current build", f"{dims}D · {net}")
     st.caption(f"config.mk: {ui.mtime_str(cfg_path)}")
+    st.caption(f"GRAINRECOMB={cfg.get('GRAINRECOMB', '0')} · MRNDUST={cfg.get('MRNDUST', '0')}")
 
 st.divider()
 

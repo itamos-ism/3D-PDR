@@ -106,10 +106,15 @@ CURATED: dict[str, dict] = {
     "H2FORM": dict(label="H2 formation", group="Physics",
                    help="CT02 = Cazaux & Tielens; SIMPLE = 3e-18·√T·exp(−T/1e3); R07 = Roellig+07."),
     "GRAINRECOMB": dict(label="Grain recombination", group="Physics", advanced=True,
-                        help="1 = electron recombination on dust grains (WD01 fits); 2 = Draine & Sutin (1987) recombination of all cations on grains."),
+                        choices=["0", "1", "2"],
+                        help="0 = off; 1 = Weingartner & Draine (2001) fits for H+, He+, C+, Mg+, S+, Fe+; "
+                             "2 = generic Draine & Sutin (1987) recombination of every cation on the single "
+                             "grain of radius 'Grain radius' (skips ions that already have an explicit "
+                             "X+ + e- + # channel, e.g. He+/C+ in REDUCED). 1 and 2 are alternatives."),
     "MRNDUST": dict(label="MRN grain size distribution", group="Physics", advanced=True,
-                    help="1 = Mathis, Rumpl & Nordsieck (1977) size distribution (5 nm - 0.25 um) instead of a single grain, "
-                         "for GRAINRECOMB = 2, H2 formation (CT02) and gas-grain heating."),
+                    help="1 = Mathis, Rumpl & Nordsieck (1977) size distribution (5 nm - 0.25 um, "
+                         "normalised to the dust-to-gas ratio) instead of a single grain, used in "
+                         "GRAINRECOMB = 2, H2 formation (CT02) and gas-grain heating; 0 = single grain (default)."),
     "SUPRATHERMAL": dict(label="Suprathermal CO", group="Physics",
                          help="1 = suprathermal formation of CO via CH+."),
     "CRATTENUATION": dict(label="CR attenuation", group="Physics",
@@ -355,6 +360,24 @@ def normalize_dependencies(values: dict[str, str]) -> list[str]:
             values["GUESS_TEMP"] = want
             notes.append(f"GUESS_TEMP set to {want} to follow THERMALBALANCE={tb}.")
     return notes
+
+
+def dependency_hints(values: dict[str, str]) -> list[str]:
+    """Advisory (non-blocking) notes on how the grain flags interact.
+
+    Never changes ``values``; flags absent from an older ``config.mk`` count as 0.
+    """
+    gr = values.get("GRAINRECOMB", "0").strip()
+    mrn = values.get("MRNDUST", "0").strip()
+    hints: list[str] = []
+    if mrn == "1" and gr != "2":
+        hints.append("MRNDUST=1 mainly matters with GRAINRECOMB=2. With GRAINRECOMB="
+                     f"{gr} it still changes H2 formation (H2FORM=CT02) and gas-grain heating.")
+    if gr == "2":
+        hints.append("GRAINRECOMB=2 skips cations that already have an explicit "
+                     "'X+ + e- + #' grain channel (e.g. He+ and C+ in REDUCED). "
+                     "It replaces GRAINRECOMB=1; the two are alternatives.")
+    return hints
 
 
 def read_config(path: Path | None = None) -> dict[str, str]:
