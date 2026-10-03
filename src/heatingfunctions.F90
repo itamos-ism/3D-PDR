@@ -12,6 +12,9 @@
       USE HEALPIX_TYPES
       USE GLOBAL_MODULE
       USE CHEMICAL_HEATING_MODULE, ONLY : CHEMICAL_HEATING_RATE
+#ifdef MRNDUST
+      USE grain_distribution_module, ONLY : MRN_SIGMA_PER_NH
+#endif
 
       IMPLICIT NONE
 
@@ -259,8 +262,18 @@
 !     This value has been used in the expression below
 !-----------------------------------------------------------------------
 !
+#ifdef MRNDUST
+!     [MRNDUST] The hard-wired grain number density NGRAIN is calibrated to one
+!     fixed grain size and is not tied to GRAIN_RADIUS, which only enters CGRAIN.
+!     The product NGRAIN*CGRAIN (grain cross section per unit volume, cm^-1) is
+!     replaced by the MRN-integrated value: MRN_SIGMA_PER_NH(METALLICITY)
+!     [cm^2 per H nucleus] * DENSITY [H nuclei cm^-3].
+      NGRAIN=MRN_SIGMA_PER_NH(METALLICITY)*DENSITY
+      CGRAIN=1.0D0
+#else
       NGRAIN=1.998D-12*DENSITY*METALLICITY
       CGRAIN=PI*GRAIN_RADIUS**2
+#endif
 
 !      ACCOMMODATION=0.35D0*EXP(-SQRT((DUST_TEMPERATURE+GAS_TEMPERATURE)/5.0D2))+0.1D0
       ACCOMMODATION=0.37D0*(1.0D0-0.8D0*EXP(-75.0D0/GAS_TEMPERATURE)) !UCL_PDR

@@ -23,6 +23,9 @@
  use global_module
  use functions_module
  use maincode_module , only : species, mass, Av_crit, v_alfv, UV_fac
+#if defined(MRNDUST) && defined(GRAINRECOMB2)
+ use grain_distribution_module , only : MRN_DS_G
+#endif
 
       IMPLICIT NONE
 
@@ -59,6 +62,9 @@
 !     DSF_zion is the ion charge in units of e, counted as the number of
 !     trailing '+' characters of the species name.
       real(kind=dp)::DSF_mgrain,DSF_ndust,DSF_G0,DSF_tau,DSF_J,DSF_vion,DSF_mion
+#ifdef MRNDUST
+      real(kind=dp)::DSF_Gz1,DSF_Gz2,DSF_Gsel
+#endif
       integer(kind=i4b)::DSF_isp,DSF_ic,DSF_zion,NDRCHAN,DSF_k,DSF_jj
       real(kind=dp),parameter::DSF_rho=3.0d0     ! g cm^-3, grain material density
 !     Affected-reaction list, built once on the first call (see below):
@@ -106,9 +112,19 @@
 !         G0     = ndust * pi * a^2   [cm^-1]
 !     The Coulomb-enhancement factor J(tau) depends on the ion charge, so it
 !     is evaluated per ion in the reaction loop below.
+#ifdef MRNDUST
+!     [MRNDUST] The single grain is replaced by the MRN (1977) size
+!     distribution: the geometric factor G0*J(tau) is replaced by the
+!     40-bin sum G(T,Z) = SUM n_gr(a) pi a^2 J(tau(a,Z)) da (grain_size.F90),
+!     computed once per cell for the charges Z=1 and Z=2 (other charges are
+!     evaluated on the fly in the loop below). GRAIN_RADIUS is not used.
+      DSF_Gz1 = MRN_DS_G(metallicity, density, TEMPERATURE, 1)
+      DSF_Gz2 = MRN_DS_G(metallicity, density, TEMPERATURE, 2)
+#else
       DSF_mgrain = (4.0d0/3.0d0)*PI*GRAIN_RADIUS**3*DSF_rho
       DSF_ndust  = (1.0d-2*metallicity)*density*MH/DSF_mgrain
       DSF_G0     = DSF_ndust*PI*GRAIN_RADIUS**2
+#endif
 
 !     [GRAINRECOMB2] Build, once, the list of reactions that receive the grain
 !     term (thread-safe: the first thread to arrive builds it, the others wait).
@@ -177,10 +193,21 @@
 !         k_gr = G0 * J(tau) * v_X ,  v_X = sqrt(8 kB T/(pi m_X))
 !         tau = a kB T/(Z e)^2 ,  J(tau) = 1 + sqrt(pi/(2 tau))
       DO DSF_k=1,DSF_nlist
+         DSF_vion = sqrt(8.0d0*KB*TEMPERATURE/(PI*DSF_mass(DSF_k)*AU))
+#ifdef MRNDUST
+         IF (DSF_z(DSF_k).EQ.1) THEN
+            DSF_Gsel = DSF_Gz1
+         ELSE IF (DSF_z(DSF_k).EQ.2) THEN
+            DSF_Gsel = DSF_Gz2
+         ELSE
+            DSF_Gsel = MRN_DS_G(metallicity, density, TEMPERATURE, DSF_z(DSF_k))
+         ENDIF
+         DSF_add(DSF_k) = (DSF_Gsel*DSF_vion/nelectron_grc)/DSF_div(DSF_k)
+#else
          DSF_tau  = GRAIN_RADIUS*KB*TEMPERATURE/(DBLE(DSF_z(DSF_k))**2*EC*EC)
          DSF_J    = 1.0d0 + sqrt(PI/(2.0d0*DSF_tau))
-         DSF_vion = sqrt(8.0d0*KB*TEMPERATURE/(PI*DSF_mass(DSF_k)*AU))
          DSF_add(DSF_k) = (DSF_G0*DSF_J*DSF_vion/nelectron_grc)/DSF_div(DSF_k)
+#endif
       ENDDO
 #endif
 

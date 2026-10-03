@@ -27,6 +27,13 @@
 #GRAINRECOMB      : 2 - Draine & Sutin (1987) recombination of all cations on grains
 #	            1 - Electron recombination on dust grains (Weingartner & Draine 2001)
 #	            0 - Switch off
+#MRNDUST          : 1 - Mathis, Rumpl & Nordsieck (1977) grain size distribution
+#                       (n(a) ~ a^-3.5, 5 nm - 0.25 micron, 40 log-spaced bins)
+#                       replaces the single grain of radius 'Grain radius' in
+#                       GRAINRECOMB = 2, H2 formation (CT02 cross sections) and
+#                       gas-grain collisional heating. Normalised to the model
+#                       dust-to-gas ratio.
+#	            0 - Single-grain treatment (default)
 #SUPRATHERMAL     : 1 - Suprathermal formation of CO via CH+
 #	            0 - Switch off
 #H2FORM	          : CT02   - Cazaux & Tielens (2002,2004) treatment
@@ -122,6 +129,7 @@ GUESS_TEMP           = 1
 THERMALBALANCE       = 1
 FORCECONVERGENCE     = 1
 GRAINRECOMB          = 0
+MRNDUST              = 0
 SUPRATHERMAL         = 0
 H2FORM               = CT02
 CRATTENUATION        = 0

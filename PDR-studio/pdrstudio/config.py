@@ -107,6 +107,9 @@ CURATED: dict[str, dict] = {
                    help="CT02 = Cazaux & Tielens; SIMPLE = 3e-18·√T·exp(−T/1e3); R07 = Roellig+07."),
     "GRAINRECOMB": dict(label="Grain recombination", group="Physics", advanced=True,
                         help="1 = electron recombination on dust grains (WD01 fits); 2 = Draine & Sutin (1987) recombination of all cations on grains."),
+    "MRNDUST": dict(label="MRN grain size distribution", group="Physics", advanced=True,
+                    help="1 = Mathis, Rumpl & Nordsieck (1977) size distribution (5 nm - 0.25 um) instead of a single grain, "
+                         "for GRAINRECOMB = 2, H2 formation (CT02) and gas-grain heating."),
     "SUPRATHERMAL": dict(label="Suprathermal CO", group="Physics",
                          help="1 = suprathermal formation of CO via CH+."),
     "CRATTENUATION": dict(label="CR attenuation", group="Physics",

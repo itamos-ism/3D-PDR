@@ -10,6 +10,9 @@ FUNCTION H2_FORMATION_RATE(GAS_TEMPERATURE,GRAIN_TEMPERATURE) RESULT(RATE)
    USE DEFINITIONS
    USE HEALPIX_TYPES
    USE GLOBAL_MODULE, ONLY: metallicity
+#ifdef MRNDUST
+   USE grain_distribution_module, ONLY: MRN_SIGMA_PER_NH
+#endif
    IMPLICIT NONE
 
    REAL(KIND=DP) :: RATE
@@ -22,6 +25,9 @@ FUNCTION H2_FORMATION_RATE(GAS_TEMPERATURE,GRAIN_TEMPERATURE) RESULT(RATE)
    REAL(KIND=DP) :: SILICATE_E_HP,SILICATE_E_HC,SILICATE_NU_H2,SILICATE_NU_HC
    REAL(KIND=DP) :: GRAPHITE_CROSS_SECTION,GRAPHITE_MU,GRAPHITE_E_S,GRAPHITE_E_H2
    REAL(KIND=DP) :: GRAPHITE_E_HP,GRAPHITE_E_HC,GRAPHITE_NU_H2,GRAPHITE_NU_HC
+#ifdef MRNDUST
+   REAL(KIND=DP) :: MRN_XSEC_RATIO
+#endif
 
 !  Mean thermal velocity of hydrogen atoms (cm s^-1)
    THERMAL_VELOCITY=1.45D5*SQRT(GAS_TEMPERATURE/1.0D2)
@@ -36,6 +42,18 @@ FUNCTION H2_FORMATION_RATE(GAS_TEMPERATURE,GRAIN_TEMPERATURE) RESULT(RATE)
    TOTAL_CROSS_SECTION=6.273D-22 ! Total mixed grain cross section per H nucleus (cm^-2/nucleus)
    SILICATE_CROSS_SECTION=8.473D-22 ! Silicate grain cross section per H nucleus (cm^-2/nucleus)
    GRAPHITE_CROSS_SECTION=7.908D-22 ! Graphite grain cross section per H nucleus (cm^-2/nucleus)
+#ifdef MRNDUST
+!  [MRNDUST] The Cazaux & Tielens (2002,2004) silicate and graphite cross
+!  sections above are themselves size-distribution integrals for one fixed
+!  literature grain population; they do not depend on the grain radius of
+!  params.dat. Rescale both by the ratio of the MRN-integrated total
+!  cross section per H nucleus of the model (evaluated for metallicity = 1,
+!  since METALLICITY multiplies the final rate) to TOTAL_CROSS_SECTION,
+!  preserving the silicate:graphite split.
+   MRN_XSEC_RATIO=MRN_SIGMA_PER_NH(1.0D0)/TOTAL_CROSS_SECTION
+   SILICATE_CROSS_SECTION=SILICATE_CROSS_SECTION*MRN_XSEC_RATIO
+   GRAPHITE_CROSS_SECTION=GRAPHITE_CROSS_SECTION*MRN_XSEC_RATIO
+#endif
 
 !  Silicate grain properties
    SILICATE_MU=0.005D0   ! Fraction of newly formed H2 that stays on the grain surface

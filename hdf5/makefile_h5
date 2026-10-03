@@ -37,6 +37,10 @@ ifneq ($(filter-out 0 1 2,$(GRAINRECOMB)),)
   $(error "Invalid value for GRAINRECOMB. Only 0, 1 and 2 are allowed")
 endif
 
+ifneq ($(filter-out 0 1,$(MRNDUST)),)
+  $(error "Invalid value for MRNDUST. Only 0 and 1 are allowed")
+endif
+
 ifeq ($(THERMALBALANCE),0)
   ifeq ($(GUESS_TEMP),1)
       $(error "Cannot compile with THERMALBALANCE = 0 and GUESS_TEMP = 1")
@@ -130,6 +134,9 @@ endif
 ifeq ($(GRAINRECOMB),2)
   CFLAGS += -DGRAINRECOMB2
 endif
+ifeq ($(MRNDUST),1)
+  CFLAGS += -DMRNDUST
+endif
 ifeq ($(SUPRATHERMAL),1)
   CFLAGS += -DSUPRATHERMAL
 endif
@@ -174,6 +181,9 @@ endif
 
 
 MODULE_OBJ += definitions.o healpix_types.o modules.o m_Mesh.o
+ifeq ($(MRNDUST),1)
+MODULE_OBJ += grain_size.o
+endif
 CODE_OBJ += healpix.o input_parameters.o solvlevpop.o \
 read_species.o read_rates.o heapsort.o calc_reac_rates.o shield.o \
 spline.o m_Ray_box.o m_IOAndVisu.o escape_probability.o eval_points.o heatingfunctions.o \
@@ -271,3 +281,9 @@ m_Mesh.o : m_Mesh.F90
 
 healpix_types.o : definitions.o
 modules.o : definitions.o healpix_types.o
+ifeq ($(MRNDUST),1)
+grain_size.o : healpix_types.o definitions.o
+calc_reac_rates.o : grain_size.o
+heatingfunctions.o : grain_size.o
+h2_form.o : grain_size.o
+endif
