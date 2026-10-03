@@ -106,7 +106,7 @@ CURATED: dict[str, dict] = {
     "H2FORM": dict(label="H2 formation", group="Physics",
                    help="CT02 = Cazaux & Tielens; SIMPLE = 3e-18·√T·exp(−T/1e3); R07 = Roellig+07."),
     "GRAINRECOMB": dict(label="Grain recombination", group="Physics", advanced=True,
-                        help="1 = electron recombination on dust grains."),
+                        help="1 = electron recombination on dust grains (WD01 fits); 2 = Draine & Sutin (1987) recombination of all cations on grains."),
     "SUPRATHERMAL": dict(label="Suprathermal CO", group="Physics",
                          help="1 = suprathermal formation of CO via CH+."),
     "CRATTENUATION": dict(label="CR attenuation", group="Physics",

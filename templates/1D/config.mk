@@ -24,7 +24,8 @@
 #		    0 - for isothermal runs (needs GUESS_TEMP=0 also)
 #FORCECONVERGENCE : 1 - Helps fast convergence (recommended)
 #		    0 - Switch off
-#GRAINRECOMB      : 1 - Electron recombination on dust grains
+#GRAINRECOMB      : 2 - Draine & Sutin (1987) recombination of all cations on grains
+#	            1 - Electron recombination on dust grains (Weingartner & Draine 2001)
 #	            0 - Switch off
 #SUPRATHERMAL     : 1 - Suprathermal formation of CO via CH+
 #	            0 - Switch off

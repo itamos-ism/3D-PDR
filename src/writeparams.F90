@@ -64,6 +64,9 @@ write(6,*) 'THERMALBALANCE'
 #ifdef GRAINRECOMB
 write(6,*) 'GRAINRECOMB'
 #endif
+#ifdef GRAINRECOMB2
+write(6,*) 'GRAINRECOMB2'
+#endif
 #ifdef SUPRATHERMAL
 write(6,*) 'SUPRATHERMAL'
 #endif

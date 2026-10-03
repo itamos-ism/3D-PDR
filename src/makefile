@@ -21,6 +21,10 @@ ifeq ($(DIMENSIONS),1)
   endif
 endif
 
+ifneq ($(filter-out 0 1 2,$(GRAINRECOMB)),)
+  $(error "Invalid value for GRAINRECOMB. Only 0, 1 and 2 are allowed")
+endif
+
 ifeq ($(THERMALBALANCE),0)
   ifeq ($(GUESS_TEMP),1)
       $(error "Cannot compile with THERMALBALANCE = 0 and GUESS_TEMP = 1")
@@ -119,6 +123,9 @@ ifeq ($(FORCECONVERGENCE),1)
 endif
 ifeq ($(GRAINRECOMB),1)
   CFLAGS += -DGRAINRECOMB
+endif
+ifeq ($(GRAINRECOMB),2)
+  CFLAGS += -DGRAINRECOMB2
 endif
 ifeq ($(SUPRATHERMAL),1)
   CFLAGS += -DSUPRATHERMAL
