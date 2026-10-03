@@ -59,8 +59,18 @@
 !     DSF_zion is the ion charge in units of e, counted as the number of
 !     trailing '+' characters of the species name.
       real(kind=dp)::DSF_mgrain,DSF_ndust,DSF_G0,DSF_tau,DSF_J,DSF_vion,DSF_mion
-      integer(kind=i4b)::DSF_isp,DSF_ic,DSF_zion,NDRCHAN
+      integer(kind=i4b)::DSF_isp,DSF_ic,DSF_zion,NDRCHAN,DSF_k,DSF_jj
       real(kind=dp),parameter::DSF_rho=3.0d0     ! g cm^-3, grain material density
+!     Affected-reaction list, built once on the first call (see below):
+!       DSF_rx(k)   reaction index         DSF_mass(k) ion mass [amu]
+!       DSF_z(k)    ion charge             DSF_div(k)  number of channels
+!       DSF_pos(i)  position of reaction i in the list (0 = not affected)
+      integer(kind=i4b),save :: DSF_nlist=0
+      integer(kind=i4b),allocatable,save :: DSF_rx(:),DSF_z(:),DSF_pos(:)
+      real(kind=dp),allocatable,save :: DSF_mass(:),DSF_div(:)
+      logical,save :: DSF_ready=.false.
+      logical :: DSF_rdy
+      real(kind=dp) :: DSF_add(NREAC)      ! grain term per listed reaction
 #endif
       real(kind=dp) :: loctemperature
 #ifdef SUPRATHERMAL
@@ -99,6 +109,79 @@
       DSF_mgrain = (4.0d0/3.0d0)*PI*GRAIN_RADIUS**3*DSF_rho
       DSF_ndust  = (1.0d-2*metallicity)*density*MH/DSF_mgrain
       DSF_G0     = DSF_ndust*PI*GRAIN_RADIUS**2
+
+!     [GRAINRECOMB2] Build, once, the list of reactions that receive the grain
+!     term (thread-safe: the first thread to arrive builds it, the others wait).
+!     A reaction "ION+ + e- -> ..." is affected if
+!       - the reactant name ends in '+' and is not PAH+,
+!       - reactant 2 is e- and reactant 3 is blank (gas-phase two-body reaction),
+!       - the ion has a known mass in the species list, and
+!       - the ion has NO explicit grain-assisted recombination reaction in the
+!         network (a reaction ION+ + e- + '#' -> ... , e.g. He+ and C+ in the
+!         REDUCED network, Gong et al. 2017). Those ions already carry a
+!         grain term, so adding the Draine & Sutin term would count the grain
+!         sink twice. (This is deliberate and differs from the development
+!         code, which adds the term anyway.)
+!     For each affected reaction the ion mass, the ion charge (number of
+!     trailing '+') and the number of channels NDRCHAN of that ion (the term
+!     is split evenly between them) are stored.
+!$OMP ATOMIC READ
+      DSF_rdy = DSF_ready
+      IF (.NOT.DSF_rdy) THEN
+!$OMP CRITICAL (grainrecomb2_init)
+      IF (.NOT.DSF_ready) THEN
+         ALLOCATE(DSF_pos(NREAC),DSF_rx(NREAC),DSF_z(NREAC),DSF_mass(NREAC),DSF_div(NREAC))
+         DSF_pos = 0
+         DSF_nlist = 0
+         DO I=1,NREAC
+            DSF_ic = LEN_TRIM(REACTANT(I,1))
+            IF (DSF_ic.LT.1) CYCLE
+            IF (REACTANT(I,1)(DSF_ic:DSF_ic).NE.'+' .OR. REACTANT(I,2).NE."e- " .OR. &
+             &  REACTANT(I,3).NE."   " .OR. TRIM(REACTANT(I,1)).EQ."PAH+") CYCLE
+            DSF_mion = 0.0d0
+            DO DSF_isp=1,NSPEC
+               IF (species(DSF_isp).EQ.REACTANT(I,1)) DSF_mion=mass(DSF_isp)
+            ENDDO
+            IF (DSF_mion.LE.0.0d0) CYCLE
+!           Explicit grain-surface recombination of this ion in the network?
+            DSF_jj = 0
+            DO J=1,NREAC
+               IF (REACTANT(J,1).EQ.REACTANT(I,1) .AND. REACTANT(J,2).EQ."e- " &
+                &  .AND. REACTANT(J,3)(1:1).EQ.'#') DSF_jj = 1
+            ENDDO
+            IF (DSF_jj.EQ.1) CYCLE
+            NDRCHAN=0
+            DO J=1,NREAC
+               IF (REACTANT(J,1).EQ.REACTANT(I,1) .AND. REACTANT(J,2).EQ."e- " &
+                &  .AND. REACTANT(J,3).EQ."   ") NDRCHAN=NDRCHAN+1
+            ENDDO
+            DSF_zion = 0
+            DO WHILE (DSF_ic-DSF_zion.GE.1)
+               IF (REACTANT(I,1)(DSF_ic-DSF_zion:DSF_ic-DSF_zion).NE.'+') EXIT
+               DSF_zion = DSF_zion + 1
+            ENDDO
+            DSF_nlist = DSF_nlist + 1
+            DSF_pos(I) = DSF_nlist
+            DSF_rx(DSF_nlist)   = I
+            DSF_z(DSF_nlist)    = DSF_zion
+            DSF_mass(DSF_nlist) = DSF_mion
+            DSF_div(DSF_nlist)  = REAL(MAX(NDRCHAN,1),KIND=DP)
+         ENDDO
+!$OMP ATOMIC WRITE
+         DSF_ready = .TRUE.
+      ENDIF
+!$OMP END CRITICAL (grainrecomb2_init)
+      ENDIF
+
+!     Per-cell grain term of every listed reaction, per electron (/nelectron_grc):
+!         k_gr = G0 * J(tau) * v_X ,  v_X = sqrt(8 kB T/(pi m_X))
+!         tau = a kB T/(Z e)^2 ,  J(tau) = 1 + sqrt(pi/(2 tau))
+      DO DSF_k=1,DSF_nlist
+         DSF_tau  = GRAIN_RADIUS*KB*TEMPERATURE/(DBLE(DSF_z(DSF_k))**2*EC*EC)
+         DSF_J    = 1.0d0 + sqrt(PI/(2.0d0*DSF_tau))
+         DSF_vion = sqrt(8.0d0*KB*TEMPERATURE/(PI*DSF_mass(DSF_k)*AU))
+         DSF_add(DSF_k) = (DSF_G0*DSF_J*DSF_vion/nelectron_grc)/DSF_div(DSF_k)
+      ENDDO
 #endif
 
       DO I=1,NREAC
@@ -581,47 +664,16 @@
 
 #endif
 #ifdef GRAINRECOMB2
-!     [GRAINRECOMB2] Draine & Sutin (1987) grain-assisted recombination,
-!     applied to EVERY reaction of the form "ION+ + e- -> ..." of any positively
-!     charged species (atomic or molecular), identified generically by the
-!     trailing '+' character(s) of the reactant name, not by a species list.
-!     PAH+ is excluded (its recombination is the dedicated PAH treatment above)
-!     and grain-surface channels are excluded by requiring REACTANT(I,3) to be
-!     blank (a genuine two-body gas-phase reaction).
-!         k_gr(X^Z+) = G0 * J(tau) * v_X ,  v_X = sqrt(8 kB T/(pi m_X))
-!         tau = a kB T/(Z e)^2 ,  J(tau) = 1 + sqrt(pi/(2 tau))
-!     expressed per electron (/nelectron_grc) so that multiplying back by n(e-)
-!     in the ODE right-hand side gives the electron-density-independent grain
-!     collision rate k_gr*n(X+). If an ion has several recombination channels,
-!     the grain term is split evenly between them (NDRCHAN) so that the total
-!     added rate equals k_gr exactly once.
-      DSF_ic = LEN_TRIM(REACTANT(I,1))
-      IF (DSF_ic.GT.0) THEN
-       IF (REACTANT(I,1)(DSF_ic:DSF_ic).EQ.'+' .AND. REACTANT(I,2).EQ."e- " .AND. &
-        &  REACTANT(I,3).EQ."   " .AND. TRIM(REACTANT(I,1)).NE."PAH+") THEN
-         DSF_mion = 0.0d0
-         DO DSF_isp=1,NSPEC
-            IF (species(DSF_isp).EQ.REACTANT(I,1)) DSF_mion=mass(DSF_isp)
-         ENDDO
-         IF (DSF_mion.GT.0.0d0) THEN
-!     Ion charge: number of trailing '+' (1 for H+, HCO+; 2 for C++, S++, ...).
-            DSF_zion = 0
-            DO WHILE (DSF_ic-DSF_zion.GE.1)
-               IF (REACTANT(I,1)(DSF_ic-DSF_zion:DSF_ic-DSF_zion).NE.'+') EXIT
-               DSF_zion = DSF_zion + 1
-            ENDDO
-            DSF_tau  = GRAIN_RADIUS*KB*TEMPERATURE/(DBLE(DSF_zion)**2*EC*EC)
-            DSF_J    = 1.0d0 + sqrt(PI/(2.0d0*DSF_tau))
-            DSF_vion = sqrt(8.0d0*KB*TEMPERATURE/(PI*DSF_mion*AU))
-            NDRCHAN=0
-            DO J=1,NREAC
-               IF (REACTANT(J,1).EQ.REACTANT(I,1) .AND. REACTANT(J,2).EQ."e- " &
-                &  .AND. REACTANT(J,3).EQ."   ") NDRCHAN=NDRCHAN+1
-            ENDDO
-            RATE(I) = RATE(I) + (DSF_G0*DSF_J*DSF_vion/nelectron_grc)/REAL(MAX(NDRCHAN,1),KIND=DP)
-         ENDIF
-       ENDIF
-      ENDIF
+!     [GRAINRECOMB2] Draine & Sutin (1987) grain-assisted recombination of every
+!     cation (atomic or molecular, not PAH+) with a gas-phase "ION+ + e- -> ..."
+!     reaction, identified generically by the trailing '+' of the name. The
+!     affected reactions and the grain term (per electron, so that multiplying
+!     by n(e-) in the ODE right-hand side gives the electron-density-independent
+!     collision rate k_gr*n(X+)) were prepared above. Ions that already have an
+!     explicit grain recombination ('#') reaction in the network are skipped to
+!     avoid double counting. If an ion has several channels the term is split
+!     evenly between them so the total added rate equals k_gr exactly once.
+      IF (DSF_pos(I).GT.0) RATE(I) = RATE(I) + DSF_add(DSF_pos(I))
 #endif
 
         IF(RATE(I).LT.0.0D0) THEN
