@@ -10,7 +10,9 @@ do p=1,itot-1
         if (jl.ge.il) exit
         if (coolant(j)%A_COEFFS(il,jl).eq.0.0D0) cycle
         sigma = (coolant(j)%FREQUENCIES(il,jl)/C) * SQRT(2*KB*pdr(p)%Tgas/MH/coolant(j)%molweight + vturb**2)
-        phi = 1. / sigma 
+        ! Gaussian line-centre value of a profile normalised to unity in frequency:
+        ! phi(nu0) = 1/(sqrt(pi)*Delta nu_D), Delta nu_D = (nu/c)*sqrt(2kT/m + b_turb^2)
+        phi = 1. / (sqrt(pi) * sigma)
         frac = 0.5 * ((pdr(p)%coolant(j)%pop(jl)+pdr(p+1)%coolant(j)%pop(jl)) * coolant(j)%WEIGHTS(il)/coolant(j)%WEIGHTS(jl) - &
                 (pdr(p)%coolant(j)%pop(il)+pdr(p+1)%coolant(j)%pop(il)))
         if (frac.lt.0.0D0) frac = 0.0D0   ! clip masing lines (no negative opacity)
