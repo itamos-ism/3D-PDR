@@ -22,7 +22,7 @@ do j=1,coo
       if (coolant(j)%A_COEFFS(il,jl).eq.0.0D0) cycle
         write(6,'(A,"(",I2,"-",I2,") :",4ES15.7)') trim(coolant(j)%cname), il-1, jl-1, &
           coolant(j)%frequencies(il,jl)/1d9, &
-          pdr(itot)%coolant(j)%Tex(il,jl),pdr(itot-1)%coolant(j)%tau(il,jl), coolant(j)%Tr(il,jl)*coolant(j)%units(il,jl)
+          pdr(itot)%coolant(j)%Tex(il,jl),pdr(itot)%coolant(j)%tau(il,jl), coolant(j)%Tr(il,jl)*coolant(j)%units(il,jl)
     enddo
   enddo
   write(6,*) ''
@@ -47,7 +47,8 @@ do j=1,coo
     write(1,'(5ES15.7)',advance='no') pdr(p)%Ntot,pdr(p)%Nabn(iH2),pdr(p)%Tgas,pdr(p)%Av,pdr(p)%coolant(j)%N
     do l=1,coolev
        write(1,'(100ES15.7)',advance='no') pdr(p)%coolant(j)%Tr(l+1,l)*coolant(j)%units(l+1,l)
-       write(2,'(100ES15.7)',advance='no') pdr(p)%coolant(j)%tau(l+1,l)
+       ! tau at p+1: row p then holds tau through the same segment as Tr and N (and the last row the full slab)
+       write(2,'(100ES15.7)',advance='no') pdr(p+1)%coolant(j)%tau(l+1,l)
        write(4,'(100ES15.7)',advance='no') pdr(p)%coolant(j)%Tex(l+1,l)
     enddo
     write(1,*);write(2,*);write(4,*)
